@@ -1,0 +1,50 @@
+{
+  "name": "@truss-security/truss-agent-mcp",
+  "version": "1.0.0",
+  "description": "Official Truss MCP server — query threat intelligence via FilterQL (stdio)",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "truss-agent-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "env.example"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "node dist/cli.js",
+    "dev": "tsx src/cli.ts",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "truss",
+    "mcp",
+    "model-context-protocol",
+    "threat-intelligence",
+    "filterql",
+    "stix"
+  ],
+  "author": "Truss Security",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@truss-security/truss-sdk": "^0.5.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/truss-security/truss-agent-mcp.git"
+  }
+}
