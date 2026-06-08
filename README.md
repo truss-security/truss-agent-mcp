@@ -212,7 +212,7 @@ npm test
 npm publish --access public
 ```
 
-Tag `v1.x.x` to trigger the [release workflow](./.github/workflows/release.yml) (requires `NPM_TOKEN` secret).
+See [guides/publishing.md](guides/publishing.md) for version bumps and GitHub release notes.
 
 ## Related projects
 
