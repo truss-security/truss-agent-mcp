@@ -21,11 +21,18 @@ Package name: `@truss-security/truss-agent-mcp`
 
 ## GitHub release
 
-Tag `v<version>` and attach release notes linking to [docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
+Push a version tag to trigger the [release workflow](../.github/workflows/release.yml) (build, test, npm publish, GitHub release with install matrix):
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+Requires `NPM_TOKEN` repository secret. Release notes link to [CHANGELOG.md](../CHANGELOG.md) and [docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
 
 ## userAgent and rate limits
 
-The server sets `userAgent: truss-agent-mcp/<version>` on every SDK request. SDK retries are disabled (`retries: 0`); the MCP layer debounces calls via `TRUSS_MCP_DEBOUNCE_MS` and documents 429 handling in [../docs/02-public-api-contract.md](../docs/02-public-api-contract.md).
+The server sets `userAgent: truss-mcp/<version>` on every SDK request. SDK retries are disabled (`retries: 0`); the MCP layer debounces calls via `TRUSS_MCP_DEBOUNCE_MS` and documents 429 handling in [../docs/02-public-api-contract.md](../docs/02-public-api-contract.md).
 
 ## Integration tests
 
@@ -46,7 +53,7 @@ npm test
 
 Without `TRUSS_RUN_INTEGRATION=1`, integration cases are skipped and only unit tests run (suitable for CI without secrets).
 
-### truss CLI live turn test
+### truss-mcp CLI live turn test
 
 Requires both Truss and Anthropic keys:
 

@@ -1,6 +1,6 @@
 # MCP tool catalog
 
-Server name: `truss-agent-mcp`  
+Server name: `truss-mcp`  
 Transport: stdio
 
 ## Server instructions (embedded)

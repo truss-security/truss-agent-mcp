@@ -1,13 +1,22 @@
 import type { ReplMode } from './ask/system-prompt.js';
 
-export function parseCommand(argv: string[]): ReplMode | 'help' | null {
+export type CliCommand = ReplMode | 'help' | 'version' | 'doctor' | 'init' | 'mcp';
+
+export function parseCommand(argv: string[]): CliCommand | null {
+  if (argv.includes('--version') || argv.includes('-V')) {
+    return 'version';
+  }
+
   const command = argv[2];
   if (!command || command === 'help' || command === '--help' || command === '-h') {
     return 'help';
   }
-  if (command === 'search' || command === 'ask') {
-    return command;
+
+  const known: CliCommand[] = ['search', 'ask', 'version', 'doctor', 'init', 'mcp', 'help'];
+  if (known.includes(command as CliCommand)) {
+    return command as CliCommand;
   }
+
   return null;
 }
 

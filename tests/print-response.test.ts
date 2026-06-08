@@ -1,25 +1,33 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractTextFromContent } from '../src/ask/print-response.ts';
+import { printAssistantResponse } from '../src/ask/print-response.ts';
 
-describe('extractTextFromContent', () => {
-  it('joins text blocks', () => {
-    const text = extractTextFromContent([
-      { type: 'text', text: 'Hello' },
-      { type: 'text', text: 'world' },
-    ]);
-    assert.equal(text, 'Hello\nworld');
+describe('printAssistantResponse', () => {
+  it('prints non-empty text with surrounding newlines', () => {
+    let output = '';
+    const original = console.log;
+    console.log = (msg: string) => {
+      output = msg;
+    };
+    try {
+      printAssistantResponse('Hello');
+      assert.equal(output, '\nHello\n');
+    } finally {
+      console.log = original;
+    }
   });
 
-  it('ignores non-text blocks', () => {
-    const text = extractTextFromContent([
-      { type: 'text', text: 'Result' },
-      { type: 'tool_use', id: '1', name: 'search_products', input: {} },
-    ] as Parameters<typeof extractTextFromContent>[0]);
-    assert.equal(text, 'Result');
-  });
-
-  it('returns empty string when no text blocks', () => {
-    assert.equal(extractTextFromContent([]), '');
+  it('prints nothing for empty text', () => {
+    let called = false;
+    const original = console.log;
+    console.log = () => {
+      called = true;
+    };
+    try {
+      printAssistantResponse('');
+      assert.equal(called, false);
+    } finally {
+      console.log = original;
+    }
   });
 });
