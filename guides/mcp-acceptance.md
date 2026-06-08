@@ -42,6 +42,17 @@ Run these prompts in Cursor or Claude Desktop and confirm the expected tool is i
 - Invalid FilterQL returns a clear validation error
 - Missing or invalid API key fails at server startup with a clear message
 
+## Security acceptance
+
+Automated security tests for prompt injection, data leakage, supply chain, and MCP tool boundaries live in the **[truss-testing](https://github.com/truss-security/truss-testing)** repo under `mcpAgentTesting/`.
+
+```bash
+cd ../truss-agent-mcp && npm ci && npm run build
+cd ../truss-testing && npm install && npm run test:mcp-agent-security
+```
+
+See [mcpAgentTesting/README.md](https://github.com/truss-security/truss-testing/blob/main/mcpAgentTesting/README.md) for red-team (`@redteam`) runs and the pass/fail rubric.
+
 ## Troubleshooting
 
 - **429 rate limit:** Reduce `limit`, narrow filters, or increase `TRUSS_MCP_DEBOUNCE_MS`

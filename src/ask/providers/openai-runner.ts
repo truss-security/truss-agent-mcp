@@ -41,18 +41,36 @@ function toolResultText(result: Record<string, unknown>): string {
 
 export async function runOpenAiTurn(
   llm: ResolvedLlm,
-  session: McpSession,
+  session: McpSession | null,
   state: OpenAiTurnState | undefined,
   userInput: string,
   systemPrompt: string
 ): Promise<{ state: OpenAiTurnState; displayText: string }> {
   const openai = new OpenAI({ apiKey: llm.apiKey });
-  const openaiTools = mcpToolsToOpenAi(session.tools);
   const messages: ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt },
     ...(state?.messages ?? []),
     { role: 'user', content: userInput },
   ];
+
+  if (!session) {
+    const response = await openai.chat.completions.create({
+      model: llm.model,
+      max_tokens: 4096,
+      messages,
+    });
+    const choice = response.choices[0];
+    if (!choice?.message) {
+      throw new Error('OpenAI returned an empty response');
+    }
+    messages.push(choice.message);
+    return {
+      state: { provider: 'openai', messages: messages.slice(1) },
+      displayText: choice.message.content?.trim() ?? '',
+    };
+  }
+
+  const openaiTools = mcpToolsToOpenAi(session.tools);
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const response = await openai.chat.completions.create({

@@ -5,42 +5,74 @@ import {
   LLM_PROVIDERS,
   type LlmProviderId,
 } from './providers/catalog.js';
-import { isInteractive, promptLine, promptSecret } from './prompt-line.js';
+import { promptLine, promptSecret } from './prompt-line.js';
+
+export interface LlmSetupOptions {
+  /** When true, always show provider and model menus (interactive init). */
+  alwaysPrompt?: boolean;
+}
+
+function resolveProviderId(values: Map<string, string>): LlmProviderId | undefined {
+  const raw = values.get('LLM_PROVIDER')?.trim().toLowerCase();
+  if (raw && getProvider(raw as LlmProviderId)) return raw as LlmProviderId;
+  return undefined;
+}
+
+function resolveCurrentModel(values: Map<string, string>, providerId: LlmProviderId): string | undefined {
+  const llmModel = values.get('LLM_MODEL')?.trim();
+  if (llmModel) return llmModel;
+  if (providerId === 'anthropic') return values.get('ANTHROPIC_MODEL')?.trim();
+  if (providerId === 'openai') return values.get('OPENAI_MODEL')?.trim();
+  return undefined;
+}
 
 export async function promptLlmSetup(
-  values: Map<string, string>
+  values: Map<string, string>,
+  options: LlmSetupOptions = {}
 ): Promise<Record<string, string>> {
+  const alwaysPrompt = options.alwaysPrompt ?? false;
   const updates: Record<string, string> = {};
 
-  let providerId = values.get('LLM_PROVIDER')?.trim().toLowerCase() as LlmProviderId | undefined;
-  if (!providerId || !getProvider(providerId)) {
+  const existingProvider = resolveProviderId(values);
+  let providerId = existingProvider;
+
+  if (alwaysPrompt || !providerId) {
     console.log('\nChoose LLM provider:\n');
+    const currentIndex = existingProvider
+      ? LLM_PROVIDERS.findIndex((p) => p.id === existingProvider)
+      : -1;
     LLM_PROVIDERS.forEach((p, i) => {
-      console.log(`  ${i + 1}. ${p.label}`);
+      const marker = i === currentIndex ? '  ← current' : '';
+      console.log(`  ${i + 1}. ${p.label}${marker}`);
     });
-    const choice = await promptLine('\nProvider [1]: ');
-    const index = choice ? Number.parseInt(choice, 10) - 1 : 0;
-    providerId = LLM_PROVIDERS[index]?.id ?? 'anthropic';
+    const defaultChoice = currentIndex >= 0 ? String(currentIndex + 1) : '1';
+    const choice = await promptLine(`\nProvider [${defaultChoice}]: `);
+    const index = choice ? Number.parseInt(choice, 10) - 1 : currentIndex >= 0 ? currentIndex : 0;
+    providerId = LLM_PROVIDERS[index]?.id ?? existingProvider ?? 'anthropic';
     updates.LLM_PROVIDER = providerId;
     values.set('LLM_PROVIDER', providerId);
   }
 
-  const provider = getProvider(providerId)!;
-  const currentModel =
-    values.get('LLM_MODEL')?.trim() ||
-    (providerId === 'anthropic' ? values.get('ANTHROPIC_MODEL')?.trim() : undefined) ||
-    (providerId === 'openai' ? values.get('OPENAI_MODEL')?.trim() : undefined);
+  const provider = getProvider(providerId!)!;
+  const existingModel = resolveCurrentModel(values, providerId!);
 
-  if (!currentModel) {
+  if (alwaysPrompt || !existingModel) {
     console.log(`\nModels for ${provider.label} (sorted by input price, lowest first):\n`);
+    const currentModelIndex = existingModel
+      ? provider.models.findIndex((m) => m.id === existingModel)
+      : -1;
     provider.models.forEach((model, i) => {
-      console.log(`  ${i + 1}. ${model.id.padEnd(20)} ${formatModelPrice(model)}`);
+      const marker = i === currentModelIndex ? '  ← current' : '';
+      console.log(`  ${i + 1}. ${model.id.padEnd(20)} ${formatModelPrice(model)}${marker}`);
     });
-    const defaultIndex = provider.models.findIndex((m) => m.id === getDefaultModel(providerId!));
+    const defaultIndex =
+      currentModelIndex >= 0
+        ? currentModelIndex
+        : provider.models.findIndex((m) => m.id === getDefaultModel(providerId!));
     const defaultLabel = defaultIndex >= 0 ? String(defaultIndex + 1) : '1';
     const choice = await promptLine(`\nModel [${defaultLabel}]: `);
     const index = choice ? Number.parseInt(choice, 10) - 1 : defaultIndex >= 0 ? defaultIndex : 0;
-    const modelId = provider.models[index]?.id ?? getDefaultModel(providerId);
+    const modelId = provider.models[index]?.id ?? getDefaultModel(providerId!);
     updates.LLM_MODEL = modelId;
     values.set('LLM_MODEL', modelId);
     console.log(`  Selected: ${modelId}`);
@@ -68,7 +100,7 @@ function hasModel(values: Map<string, string>, providerId: LlmProviderId): boole
 }
 
 export function needsLlmSetup(values: Map<string, string>): boolean {
-  const providerId = (values.get('LLM_PROVIDER')?.trim().toLowerCase() || 'anthropic') as LlmProviderId;
+  const providerId = resolveProviderId(values) ?? 'anthropic';
   const provider = getProvider(providerId) ?? getProvider('anthropic')!;
   const modelMissing = !hasModel(values, providerId);
   const keyMissing = !values.get(provider.apiKeyEnv)?.trim();

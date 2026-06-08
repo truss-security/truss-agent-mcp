@@ -2,6 +2,7 @@ import type { AskConfig } from './config.js';
 import type { McpSession } from './mcp-session.js';
 import { runAnthropicTurn, type AnthropicTurnState } from './providers/anthropic-runner.js';
 import { runOpenAiTurn, type OpenAiTurnState } from './providers/openai-runner.js';
+import type { ReplMode } from './system-prompt.js';
 
 export type TurnState = AnthropicTurnState | OpenAiTurnState;
 
@@ -12,7 +13,8 @@ export interface TurnResult {
 
 export async function runTurn(
   config: AskConfig,
-  session: McpSession,
+  mode: ReplMode,
+  session: McpSession | null,
   state: TurnState | undefined,
   userInput: string,
   systemPrompt: string
@@ -24,23 +26,23 @@ export async function runTurn(
     apiKeyEnv: config.llmApiKeyEnv,
   };
 
+  const mcpSession = mode === 'search' ? session : null;
+
   if (config.provider === 'openai') {
-    const result = await runOpenAiTurn(
+    return runOpenAiTurn(
       llm,
-      session,
+      mcpSession,
       state?.provider === 'openai' ? state : undefined,
       userInput,
       systemPrompt
     );
-    return result;
   }
 
-  const result = await runAnthropicTurn(
+  return runAnthropicTurn(
     llm,
-    session,
+    mcpSession,
     state?.provider === 'anthropic' ? state : undefined,
     userInput,
     systemPrompt
   );
-  return result;
 }

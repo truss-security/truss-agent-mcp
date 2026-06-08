@@ -26,7 +26,7 @@ describe('runInit', () => {
     assert.match(content, /ANTHROPIC_API_KEY/);
   });
 
-  it('reports configured keys when .env already has values', async () => {
+  it('reports complete when fully configured (non-interactive)', async () => {
     const envPath = join(tempDir, '.env');
     writeFileSync(
       envPath,
