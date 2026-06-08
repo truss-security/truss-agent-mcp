@@ -27,6 +27,12 @@
 - **Truss-first prompts** — Truss FilterQL and product search before external/OSINT; full per-field guide with `=`, `!=`, `LIKE` on all 11 attributes
 - **`run` REPL command** — from ask mode, switches to search and executes the last confirmed FilterQL automatically
 - **Search → ask handoff** — coaching questions in search mode prompt `:ask` and port the question when you switch
+- **Prompting UX roadmap** — composable instruction blocks, response format templates, MCP host vs REPL prompt split
+- **7-day default search window** — `run`, prompts, and MCP tools default to `days: 7` (was 30 in run helper)
+- **Filter confirm gate** — draft vs confirmed filters; `confirm` before `run` executes
+- **REPL commands** — `help`, `filter`, `confirm`, `days`, `days 30`, `run 30`, `clear`, `status`; `!` / `search:` / `ask:` force prefixes
+- **API quota hints** — disclosed when using windows wider than 7 days (`days 30`, `run 30`, long date ranges)
+- **Richer MCP tool descriptions** — validate-first, pagination, STIX, and quota guidance
 - **`search` vs `ask` are now functionally distinct**: `search` connects Truss MCP tools; `ask` is LLM-only and cannot query products
 - **REPL mode switching** — `:search` and `:ask` switch modes without exiting (MCP subprocess started/stopped accordingly)
 - **Single binary only** — removed `truss-agent-mcp` npm bin; MCP hosts use `truss-mcp mcp` (or `npx -y @truss-security/truss-agent-mcp mcp`)

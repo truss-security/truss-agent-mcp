@@ -1,40 +1,28 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  buildRunSearchQuery,
-  extractFilterFromText,
-} from '../src/ask/extract-filter.ts';
-
-describe('extractFilterFromText', () => {
-  it('extracts the last FilterQL code block', () => {
-    const text = `
-Primary:
-\`\`\`
-tags = "Sandworm"
-\`\`\`
-
-Confirmed:
-\`\`\`
-(tags = "Sandworm" OR tags = "APT44")
-\`\`\`
-`;
-    assert.equal(
-      extractFilterFromText(text),
-      '(tags = "Sandworm" OR tags = "APT44")'
-    );
-  });
-
-  it('ignores non-filter code blocks', () => {
-    const text = '```\nnot a filter\n```\n```\ncategory = "Malware"\n```';
-    assert.equal(extractFilterFromText(text), 'category = "Malware"');
-  });
-});
+import { buildRunSearchQuery } from '../src/ask/extract-filter.ts';
+import { DEFAULT_SEARCH_DAYS } from '../src/ask/search-window.ts';
 
 describe('buildRunSearchQuery', () => {
-  it('includes filterExpression and days', () => {
-    const q = buildRunSearchQuery('tags = "Sandworm"', 90);
+  it('includes filterExpression and default 7 days', () => {
+    const q = buildRunSearchQuery('tags = "Sandworm"');
     assert.match(q, /tags = "Sandworm"/);
-    assert.match(q, /days: 90/);
+    assert.match(q, new RegExp(`days: ${DEFAULT_SEARCH_DAYS}`));
     assert.match(q, /validate_filter_expression/i);
+  });
+
+  it('includes explicit date range', () => {
+    const q = buildRunSearchQuery('tags = "Sandworm"', {
+      startDate: '2026-06-01',
+      endDate: '2026-06-08',
+    });
+    assert.match(q, /startDate: "2026-06-01"/);
+    assert.match(q, /endDate: "2026-06-08"/);
+    assert.doesNotMatch(q, /Use days:/);
+  });
+
+  it('includes custom rolling days', () => {
+    const q = buildRunSearchQuery('tags = "Sandworm"', { days: 30 });
+    assert.match(q, /days: 30/);
   });
 });

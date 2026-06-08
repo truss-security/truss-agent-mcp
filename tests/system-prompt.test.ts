@@ -5,27 +5,37 @@ import {
   SEARCH_SYSTEM_PROMPT,
   getSystemPrompt,
 } from '../src/ask/system-prompt.ts';
-import { SERVER_INSTRUCTIONS } from '../src/instructions.ts';
+import {
+  MCP_HOST_INSTRUCTIONS,
+  REPL_SEARCH_INSTRUCTIONS,
+} from '../src/instructions.ts';
 
 describe('system prompts', () => {
   it('SEARCH_SYSTEM_PROMPT is Truss-first with FilterQL operators', () => {
-    assert.ok(SEARCH_SYSTEM_PROMPT.includes(SERVER_INSTRUCTIONS));
+    assert.ok(SEARCH_SYSTEM_PROMPT.includes(REPL_SEARCH_INSTRUCTIONS));
     assert.match(SEARCH_SYSTEM_PROMPT, /Truss-first/i);
     assert.match(SEARCH_SYSTEM_PROMPT, /!=/);
     assert.match(SEARCH_SYSTEM_PROMPT, /LIKE/i);
     assert.match(SEARCH_SYSTEM_PROMPT, /validate_filter_expression/i);
     assert.match(SEARCH_SYSTEM_PROMPT, /:ask/);
+    assert.match(SEARCH_SYSTEM_PROMPT, /run/);
   });
 
   it('ASK_SYSTEM_PROMPT is Truss-first FilterQL coaching without live search', () => {
     assert.match(ASK_SYSTEM_PROMPT, /Truss-first/i);
     assert.match(ASK_SYSTEM_PROMPT, /do NOT have live Truss MCP tools/i);
-    assert.match(ASK_SYSTEM_PROMPT, /:search/);
+    assert.match(ASK_SYSTEM_PROMPT, /type run/i);
     assert.match(ASK_SYSTEM_PROMPT, /tags = "Sandworm"/);
     assert.match(ASK_SYSTEM_PROMPT, /!=/);
     assert.match(ASK_SYSTEM_PROMPT, /LIKE/i);
+    assert.match(ASK_SYSTEM_PROMPT, /quota/i);
     assert.match(ASK_SYSTEM_PROMPT, /external/i);
     assert.doesNotMatch(ASK_SYSTEM_PROMPT, /search_products/);
+  });
+
+  it('MCP_HOST_INSTRUCTIONS has no REPL run command', () => {
+    assert.doesNotMatch(MCP_HOST_INSTRUCTIONS, /type run to switch/i);
+    assert.match(MCP_HOST_INSTRUCTIONS, /validate_filter_expression/i);
   });
 
   it('includes all Truss FilterQL attributes in field guide', () => {
