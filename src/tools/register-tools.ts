@@ -3,8 +3,6 @@ import {
   FILTER_COMPARISON_OPERATORS,
   FILTER_LOGICAL_OPERATORS,
   FILTER_QL_ATTRIBUTES,
-  parseExpressionToAst,
-  validateExpressionSyntax,
 } from '@truss-security/truss-sdk';
 import { z } from 'zod';
 import type { McpServerConfig } from '../config.js';
@@ -16,6 +14,7 @@ import {
   type ApiSearchFilter,
 } from '../lib/build-product-search-payload.js';
 import { summarizeProducts } from '../lib/summarize-product.js';
+import { validateFilterExpression } from '../lib/validate-filter-expression.js';
 import {
   iterateInputSchema,
   searchInputSchema,
@@ -90,18 +89,7 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
       }),
     },
     async ({ filterExpression }: { filterExpression: string }) => {
-      const trimmed = filterExpression.trim();
-      if (!trimmed) {
-        return textResult({ valid: false, error: 'filterExpression is empty' });
-      }
-      const { ast, error } = parseExpressionToAst(trimmed);
-      if (ast) {
-        return textResult({ valid: true });
-      }
-      return textResult({
-        valid: validateExpressionSyntax(trimmed),
-        error: error ?? 'Invalid FilterQL expression',
-      });
+      return textResult(validateFilterExpression(filterExpression));
     }
   );
 
