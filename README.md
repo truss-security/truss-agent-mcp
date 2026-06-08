@@ -22,7 +22,6 @@ See [config/cursor.mcp.json](./config/cursor.mcp.json) or [config/claude_desktop
 |--|--|
 | [docs/](./docs/) | Architecture, API contract, tool catalog |
 | [guides/](./guides/) | Getting started, client setup, FilterQL cookbook |
-| [docs/huggingface/](./docs/huggingface/) | Hugging Face hub README template |
 
 ## Development
 
