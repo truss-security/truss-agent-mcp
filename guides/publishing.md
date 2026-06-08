@@ -21,14 +21,13 @@ Package name: `@truss-security/truss-agent-mcp`
 
 ## GitHub release
 
-Push a version tag to trigger the [release workflow](../.github/workflows/release.yml) (build, test, npm publish, GitHub release with install matrix):
+After publishing to npm, create a GitHub release manually (or with `gh release create`) and link to [CHANGELOG.md](../CHANGELOG.md).
 
 ```bash
 git tag v1.1.0
 git push origin v1.1.0
+gh release create v1.1.0 --title "v1.1.0" --notes-file CHANGELOG.md
 ```
-
-Requires `NPM_TOKEN` repository secret. Release notes link to [CHANGELOG.md](../CHANGELOG.md) and [docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
 
 ## userAgent and rate limits
 
@@ -51,7 +50,7 @@ export TRUSS_RUN_INTEGRATION=1
 npm test
 ```
 
-Without `TRUSS_RUN_INTEGRATION=1`, integration cases are skipped and only unit tests run (suitable for CI without secrets).
+Without `TRUSS_RUN_INTEGRATION=1`, integration cases are skipped and only unit tests run.
 
 ### truss-mcp CLI live turn test
 
@@ -65,8 +64,3 @@ npm test
 ```
 
 Runs `tests/ask-integration.test.ts` (single Claude + MCP turn).
-
-### CI
-
-- **CI workflow** (`.github/workflows/ci.yml`): runs on every push/PR — build + unit tests on Node 18 and 20.
-- **Integration workflow** (`.github/workflows/integration.yml`): manual `workflow_dispatch` — requires `TRUSS_API_KEY` repository secret.
