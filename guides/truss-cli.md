@@ -1,105 +1,61 @@
-# truss CLI — terminal REPL with Claude
+# truss-mcp CLI — terminal REPL with Claude
 
-The `truss` binary provides interactive terminal access to Truss threat intelligence via Claude, without Cursor or Claude Desktop.
+The `truss-mcp` binary provides interactive terminal access to Truss threat intelligence via Claude, without Cursor or Claude Desktop.
 
 | Command | Purpose |
 |---------|---------|
-| `truss search` | Threat-intel retrieval REPL — FilterQL search, pagination, STIX |
-| `truss ask` | General assistant REPL — answer freely; query Truss when needed |
-| `truss help` | Show usage |
-
-Both modes use the same `truss-agent-mcp` tools; only the system prompt differs.
+| `truss-mcp init` | Create `.env` from template |
+| `truss-mcp doctor` | Validate keys and API access |
+| `truss-mcp search` | Threat-intel retrieval REPL |
+| `truss-mcp ask` | General assistant REPL |
+| `truss-mcp mcp` | Run stdio MCP server (same binary — use in Cursor / Claude Desktop) |
+| `truss-mcp help` | Show usage |
 
 ## Prerequisites
 
 - Node.js 18+
-- `npm run build` completed in this repo
-- **Two API keys:**
-  - `TRUSS_API_KEY` — Truss product search
-  - `ANTHROPIC_API_KEY` — Claude Messages API
+- `npm run build` completed (from source) or global npm install
+- **Two API keys** for search/ask: `TRUSS_API_KEY`, `ANTHROPIC_API_KEY`
 
 ## Quick start
 
 ```bash
-cd truss-agent-mcp
-npm install
-npm run build
-
-export TRUSS_API_KEY=your_truss_key
-export ANTHROPIC_API_KEY=your_anthropic_key
-
-truss search
-# or: npm run truss:search
-# or: truss ask
+npm install -g @truss-security/truss-agent-mcp
+truss-mcp init
+# edit .env
+truss-mcp doctor
+truss-mcp search
 ```
 
-### Search mode
+From source (use npm scripts — local install does not put `truss-mcp` on PATH):
 
-```
-Truss Search — threat intelligence retrieval
-Model: claude-sonnet-4-6 | Tools: 7
-Type a question, or: exit | quit | :q
-
-> malware targeting healthcare in the last 30 days
-> show STIX for product id 48291
-> exit
+```bash
+npm install && npm run build
+npm run truss:init
+npm run truss:doctor
+npm run truss:search
 ```
 
-### Ask mode
+Or `npm install -g .` to get the `truss-mcp` command globally.
 
-```
-Truss Ask — general assistant
-Model: claude-sonnet-4-6 | Tools: 7
-Type a question, or: exit | quit | :q
+## Environment
 
-> What is FilterQL and when should I use source vs category?
-> Now search Truss for ransomware from FeedA this week
-> exit
-```
+Loaded from `~/.config/truss/env`, `~/.truss/.env`, then `./.env` (shell env always wins).
 
-## Environment variables
+| Variable | Required | Default |
+|----------|----------|---------|
+| `TRUSS_API_KEY` | yes | — |
+| `ANTHROPIC_API_KEY` | search/ask | — |
+| `ANTHROPIC_MODEL` | no | `claude-sonnet-4-6` |
+| `TRUSS_MCP_SERVER_PATH` | no | auto-resolve `dist/truss-cli.js` |
 
-| Variable | Required | Default | Purpose |
-|----------|----------|---------|---------|
-| `TRUSS_API_KEY` | yes | — | Truss API key |
-| `ANTHROPIC_API_KEY` | yes | — | Anthropic API key |
-| `ANTHROPIC_MODEL` | no | `claude-sonnet-4-6` | Claude model for tool use |
-| `TRUSS_API_URL` | no | `https://api.truss-security.com` | Truss API base URL |
-| `TRUSS_ASK_SERVER_PATH` | no | `dist/cli.js` in package | Override MCP server binary path |
-| `TRUSS_MCP_MAX_LIMIT` | no | `50` | Per-request result cap |
-| `TRUSS_MCP_MAX_PAGES` | no | `3` | Max pages for iterate tool |
-| `TRUSS_MCP_DEBOUNCE_MS` | no | `200` | Min gap between Truss API calls |
+See [env.example](../env.example).
 
-`truss` loads `.env` from the current working directory at startup (does not overwrite variables already set in the shell).
+## npm bin conflict
 
-## npm bin name conflict
-
-`@truss-security/truss-sdk` also publishes a `truss` binary (`truss examples`). Installing both packages globally may cause a conflict — use `npx @truss-security/truss-agent-mcp` or local `npm link` carefully.
-
-## How it works
-
-```
-You → truss search|ask REPL → Claude API (toolRunner)
-                               ↓ MCP stdio
-                          truss-agent-mcp → Truss API
-```
-
-- One MCP subprocess per REPL session
-- Conversation history kept in memory for follow-ups
-- `truss-agent-mcp` (stdio server) unchanged for Cursor/Claude Desktop
-
-## Troubleshooting
-
-| Issue | Fix |
-|-------|-----|
-| `MCP server not found` | Run `npm run build` |
-| `TRUSS_API_KEY is required` | Set in shell or `.env` |
-| `ANTHROPIC_API_KEY is required` | Set in shell or `.env` |
-| Truss 429 rate limit | Narrow filters, lower limits, or increase `TRUSS_MCP_DEBOUNCE_MS` |
-| Truss 403 | Verify API key has search access |
+`@truss-security/truss-sdk` publishes a `truss` binary. This package uses **`truss-mcp`** to avoid global install conflicts.
 
 ## Related
 
-- [getting-started.md](./getting-started.md) — MCP host setup (Cursor, Claude Desktop)
-- [truss-agent-vs-mcp.md](./truss-agent-vs-mcp.md) — scheduled agent vs interactive retrieval
+- [getting-started.md](./getting-started.md) — MCP host setup
 - [mcp-acceptance.md](./mcp-acceptance.md) — verify MCP tools in a host

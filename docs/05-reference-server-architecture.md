@@ -16,7 +16,7 @@ Truss API (API Gateway + Lambda)
 
 | File | Role |
 |------|------|
-| `src/cli.ts` | CLI bin `truss-agent-mcp` |
+| `src/truss-cli.ts` | CLI bin `truss-mcp` (`mcp`, `search`, `ask`, …) |
 | `src/server.ts` | Builds `McpServer`, registers tools, connects stdio transport |
 
 ## Configuration
@@ -34,7 +34,7 @@ Loaded from environment at startup (see `env.example`):
 ## SDK client
 
 - `TrussClient` with `retries: 0` (avoid double retry with host tool loops)
-- `userAgent: truss-agent-mcp/<package version>`
+- `userAgent: truss-mcp/<package version>`
 - Errors: `TrussApiError`, `TrussTimeoutError`, `TrussNetworkError` mapped to tool error text
 
 ## Payload builder

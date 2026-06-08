@@ -5,11 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
-const cliPath = join(rootDir, 'dist', 'cli.js');
+const cliPath = join(rootDir, 'dist', 'truss-cli.js');
 
 describe('smoke', () => {
   it('starts stdio server without immediate exit when TRUSS_API_KEY is set', async () => {
-    const child = spawn(process.execPath, [cliPath], {
+    const child = spawn(process.execPath, [cliPath, 'mcp'], {
       env: { ...process.env, TRUSS_API_KEY: 'smoke-test-key' },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -30,10 +30,10 @@ describe('smoke', () => {
   });
 
   it('exits with error when TRUSS_API_KEY is missing', async () => {
-    const env = { ...process.env };
-    delete env.TRUSS_API_KEY;
+    // Empty string blocks loadAllEnv from filling TRUSS_API_KEY from project .env
+    const env = { ...process.env, TRUSS_API_KEY: '' };
 
-    const child = spawn(process.execPath, [cliPath], { env, stdio: 'pipe' });
+    const child = spawn(process.execPath, [cliPath, 'mcp'], { env, stdio: 'pipe' });
     const [exitCode, stderr] = await Promise.all([
       new Promise<number | null>((resolve) => {
         child.on('exit', (code) => resolve(code));

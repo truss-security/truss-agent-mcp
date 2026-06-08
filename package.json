@@ -1,26 +1,33 @@
 {
   "name": "@truss-security/truss-agent-mcp",
-  "version": "1.0.0",
-  "description": "Official Truss MCP server — query threat intelligence via FilterQL (stdio)",
+  "version": "1.1.0",
+  "description": "Official Truss MCP server and CLI — query threat intelligence via FilterQL (stdio + truss-mcp)",
   "type": "module",
-  "main": "dist/cli.js",
+  "main": "dist/truss-cli.js",
   "bin": {
-    "truss": "./dist/truss-cli.js",
-    "truss-agent-mcp": "./dist/cli.js"
+    "truss-mcp": "./dist/truss-cli.js"
   },
   "files": [
     "dist/**/*",
     "README.md",
-    "env.example"
+    "env.example",
+    "CHANGELOG.md",
+    "guides/truss-cli.md",
+    "guides/getting-started.md",
+    "config/cursor.mcp.json",
+    "config/claude_desktop_config.json"
   ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "start": "node dist/cli.js",
-    "dev": "tsx src/cli.ts",
-    "truss": "tsx src/truss-cli.ts",
-    "truss:search": "tsx src/truss-cli.ts search",
-    "truss:ask": "tsx src/truss-cli.ts ask",
+    "start": "node dist/truss-cli.js mcp",
+    "dev": "tsx src/truss-cli.ts mcp",
+    "truss-mcp": "node dist/truss-cli.js",
+    "truss:init": "node dist/truss-cli.js init",
+    "truss:doctor": "node dist/truss-cli.js doctor",
+    "truss:search": "node dist/truss-cli.js search",
+    "truss:ask": "node dist/truss-cli.js ask",
+    "truss:mcp": "node dist/truss-cli.js mcp",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "smoke": "npm run build && node --import tsx --test tests/smoke.test.ts",
     "prepublishOnly": "npm run clean && npm run build"
@@ -31,7 +38,8 @@
     "model-context-protocol",
     "threat-intelligence",
     "filterql",
-    "stix"
+    "stix",
+    "cli"
   ],
   "author": "Truss Security",
   "license": "MIT",
@@ -42,6 +50,7 @@
     "@anthropic-ai/sdk": "^0.102.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@truss-security/truss-sdk": "^0.5.3",
+    "openai": "^4.104.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

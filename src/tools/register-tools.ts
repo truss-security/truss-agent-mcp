@@ -183,10 +183,13 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
         const limit = clampLimit(input.limit, config.maxLimit);
         const page = input.page ?? 1;
         const payload = buildProductSearchPayload(toApiSearchFilter(input), page, limit);
-        const stix = await withApi(config, () => client.search.productsStix(payload));
-        return {
-          content: [{ type: 'text' as const, text: JSON.stringify(stix, null, 2) }],
+        const result = await withApi(config, () => client.search.productsStix(payload));
+        const output = {
+          bundle: result.bundle,
+          objectCount: result.bundle.objects?.length ?? 0,
+          ...(result.pagination ? { pagination: result.pagination } : {}),
         };
+        return textResult(output);
       } catch (error) {
         return toolError(formatTrussError(error));
       }
