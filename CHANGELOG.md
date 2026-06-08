@@ -18,7 +18,6 @@
 - REPL spinner (`Thinking...`) and mode-specific prompts (`truss search>`, `truss ask>`)
 - `TRUSS_MCP_SERVER_PATH` env var (`TRUSS_ASK_SERVER_PATH` kept as deprecated alias)
 - npm `files` expanded: `guides/`, `config/`, `CHANGELOG.md`
-- GitHub Actions release workflow (tag `v*` → build, test, npm publish, GitHub release)
 - npm scripts for local dev: `truss:init`, `truss:doctor`, `truss:search`, `truss:ask`, `truss:mcp`
 - `openai` SDK dependency for OpenAI provider support
 
@@ -33,6 +32,7 @@
 - **REPL commands** — `help`, `filter`, `confirm`, `days`, `days 30`, `run 30`, `clear`, `status`; `!` / `search:` / `ask:` force prefixes
 - **API quota hints** — disclosed when using windows wider than 7 days (`days 30`, `run 30`, long date ranges)
 - **Richer MCP tool descriptions** — validate-first, pagination, STIX, and quota guidance
+- **Removed GitHub Actions workflows** — no automated CI, integration, or release runs in the repo; publish manually per `guides/publishing.md`
 - **`search` vs `ask` are now functionally distinct**: `search` connects Truss MCP tools; `ask` is LLM-only and cannot query products
 - **REPL mode switching** — `:search` and `:ask` switch modes without exiting (MCP subprocess started/stopped accordingly)
 - **Single binary only** — removed `truss-agent-mcp` npm bin; MCP hosts use `truss-mcp mcp` (or `npx -y @truss-security/truss-agent-mcp mcp`)
