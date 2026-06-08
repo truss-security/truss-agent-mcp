@@ -1,28 +1,38 @@
 # FilterQL for LLM hosts
 
-Host models should translate user intent into **FilterQL** before calling `search_products`. Use `validate_filter_expression` to catch syntax errors without spending API quota.
+Host models should translate user intent into **Truss FilterQL** before calling `search_products`. Stay **Truss-first**: frame answers as Truss product search; mention external/OSINT only after the Truss path or when the user asks.
 
-## Attributes
-
-| Attribute | Typical use |
-|-----------|-------------|
-| `category` | Malware, Ransomware, Phishing, … |
-| `source` | Feed or publisher name |
-| `type` | Product type |
-| `title` | Title substring (`LIKE`) |
-| `author` | Author names |
-| `industry` | Target industry (e.g. Healthcare) |
-| `region` | Geographic region |
-| `tags` | Tag values |
-| `reference` | Reference URLs or labels |
-| `indicators` | IOC-related filter |
-| `validators` | Validator metadata |
+Use `validate_filter_expression` to catch syntax errors without spending API quota.
 
 ## Operators
 
-- Comparison: `=`, `!=`, `LIKE`
-- Logic: `AND` (tighter binding), `OR`
-- Literals: double-quoted strings; escape `"` and `\` inside literals
+| Operator | Use |
+|----------|-----|
+| `=` | Exact match — category, source, tags, type, industry, region, author, validators |
+| `!=` | Exclude — e.g. `source != "Unwanted"` |
+| `LIKE` | Substring with `%` — primarily `title`; selective `reference` URL patterns |
+| `AND` | Narrow (binds tighter than OR) |
+| `OR` | Broaden — use parentheses |
+
+Only these operators exist. No `IN`, `CONTAINS`, colon syntax, or regex.
+
+## Attributes
+
+| Attribute | Truss data | Operators | Guidance |
+|-----------|------------|-----------|----------|
+| `tags` | Threat actors, malware, campaigns | `=`, `!=`, `OR` | Primary field for named threats |
+| `category` | Malware, Ransomware, Phishing, … | `=`, `!=` | Product category bucket |
+| `type` | Product type | `=`, `!=` | Exact Truss type string |
+| `source` | Feed or publisher | `=`, `!=` | Exact feed name |
+| `industry` | Target sector | `=`, `!=`, `OR` | e.g. Healthcare |
+| `region` | Geography | `=`, `!=`, `OR` | e.g. Europe |
+| `author` | Report authors | `=`, `!=`, `LIKE` sparingly | |
+| `title` | Report headlines | `LIKE` only for keywords | Never `title = "OneWord"` |
+| `reference` | Citation URLs | `=`, `LIKE` for URL patterns | Not for threat-name keyword search |
+| `indicators` | IOC-related | `=`, `LIKE` | When user asks about IOCs |
+| `validators` | Validator metadata | `=`, `!=` | When user names a validator |
+
+Call `list_filter_attributes` to return the canonical list from the SDK.
 
 ## Examples
 
@@ -35,6 +45,10 @@ category = "Malware" AND industry = "Healthcare"
 ```
 
 ```
+source != "Unwanted" AND category = "Phishing"
+```
+
+```
 (source = "OpenPhish" OR source = "PhishTank") AND category = "Phishing"
 ```
 
@@ -42,28 +56,36 @@ category = "Malware" AND industry = "Healthcare"
 title LIKE "%lockbit%"
 ```
 
+```
+tags = "Sandworm"
+```
+
+```
+(tags = "Sandworm" OR tags = "APT44" OR tags = "Voodoo Bear")
+```
+
 ## Date windows
 
 Pass separately in tool args (not inside FilterQL):
 
 - `days: 7` — rolling last 7 days
-- `startDate` / `endDate` — explicit range (prefer when user says “since January”)
+- `startDate` / `endDate` — explicit range
 
-When `startDate` is provided, the server omits `days` so the API does not override the window.
+## Workflow
 
-## Workflow for the host LLM
-
-1. Call `list_filter_attributes` if unsure of field names.
-2. Draft `filterExpression` from the user question.
-3. Call `validate_filter_expression` — fix errors if invalid.
-4. Call `search_products` with `limit` ≤ 25 unless the user needs more.
-5. Cite results using `id` and `title` from the response.
+1. Reframe the question as a Truss product search.
+2. Call `list_filter_attributes` if unsure of field names.
+3. Draft `filterExpression` using `=`, `!=`, or `LIKE`.
+4. Call `validate_filter_expression`.
+5. Call `search_products` with `limit` ≤ 25 unless the user needs more.
+6. Cite results using Truss `id` and `title`.
 
 ## Common mistakes
 
-- Using single quotes for strings (use double quotes)
-- Inventing attributes not in the list
-- Putting dates inside FilterQL (use tool date fields)
-- Requesting hundreds of rows in one tool call (paginate or use `iterate_products_summary` with caps)
+- Non-Truss syntax: `tag:Sandworm`, `tags IN (...)`, single quotes
+- `title = "Sandworm"` — use `title LIKE "%sandworm%"` only as optional broadening
+- `reference = "Sandworm"` — reference holds URLs
+- Dates inside FilterQL — use tool date fields
+- External search before Truss — cover Truss FilterQL first
 
-More examples: [../guides/filterql-cookbook.md](../guides/filterql-cookbook.md).
+More: [../guides/filterql-cookbook.md](../guides/filterql-cookbook.md).

@@ -1,33 +1,31 @@
 # FilterQL cookbook
 
-Natural-language intent → FilterQL examples for host LLMs. Always pair with an appropriate `days` or date range.
+Truss-first: every row below is a **Truss product search** via FilterQL. Pair with `days` or `startDate`/`endDate` on the search tool.
 
-| User intent | FilterQL | Notes |
-|-------------|----------|-------|
-| Recent ransomware | `category = "Ransomware"` | `days: 14` |
-| Healthcare-targeting malware | `category = "Malware" AND industry = "Healthcare"` | |
-| Phishing from two sources | `(source = "OpenPhish" OR source = "PhishTank") AND category = "Phishing"` | |
-| Title mentions LockBit | `title LIKE "%lockbit%"` | `LIKE` is case-sensitive per API |
-| High-signal tags | `tags = "ransomware"` | Adjust tag value to your taxonomy |
-| European region focus | `region = "Europe"` | |
-| Specific feed only | `source = "Your Source Name"` | Use exact source strings from dashboard |
-| Multiple categories | `(category = "Malware" OR category = "Ransomware")` | |
-| Exclude a source | `category = "Phishing" AND source != "Unwanted"` | `!=` supported |
-| Validator present | `validators = "some-validator"` | When metadata exists |
+| User intent | FilterQL | Operators used |
+|-------------|----------|----------------|
+| Recent ransomware | `category = "Ransomware"` | `=` |
+| Exclude a feed | `category = "Phishing" AND source != "Unwanted"` | `=`, `!=` |
+| Healthcare malware | `category = "Malware" AND industry = "Healthcare"` | `=`, `AND` |
+| Phishing from two sources | `(source = "OpenPhish" OR source = "PhishTank") AND category = "Phishing"` | `=`, `OR`, `AND` |
+| Title mentions LockBit | `title LIKE "%lockbit%"` | `LIKE` |
+| Named threat (Sandworm) | `tags = "Sandworm"` | `=` — ask about aliases before OR-expanding |
+| Named threat + aliases | `(tags = "Sandworm" OR tags = "APT44" OR tags = "Voodoo Bear")` | `=`, `OR` |
+| European focus | `region = "Europe"` | `=` |
+| Not phishing | `category != "Phishing"` | `!=` |
+| Reference from domain | `reference LIKE "%.gov%"` | `LIKE` on URL field |
 
-## Pagination patterns
+## Named threats
 
-- First page: `search_products` with `limit: 25`
-- More results: `search_products_page` with `page: 2` when `hasMore` is true
-- Bulk export: `iterate_products_summary` (respects `TRUSS_MCP_MAX_PAGES`)
+1. Start: `tags = "PrimaryName"`
+2. Ask user about aliases
+3. Expand with `OR` only after confirmation
 
-## STIX export
+## External search
 
-Use `search_products_stix` with the same `filterExpression` and dates when the downstream tool expects STIX 2.x bundles.
+Cover the Truss filter first. If the user needs global/OSINT beyond Truss products, say so explicitly after proposing the Truss query.
 
 ## Validation
-
-Before calling search tools, run:
 
 ```
 validate_filter_expression({ filterExpression: "..." })
