@@ -2,7 +2,8 @@
 
 | Guide | Description |
 |-------|-------------|
-| [getting-started.md](./getting-started.md) | Install and first query |
+| [getting-started.md](./getting-started.md) | Install and first query (MCP hosts) |
+| [truss-cli.md](./truss-cli.md) | Terminal REPL (`truss search` / `truss ask`) |
 | [client-setup-cursor.md](./client-setup-cursor.md) | Cursor MCP configuration |
 | [client-setup-claude-desktop.md](./client-setup-claude-desktop.md) | Claude Desktop configuration |
 | [filterql-cookbook.md](./filterql-cookbook.md) | NL intent → FilterQL examples |

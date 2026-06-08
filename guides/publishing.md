@@ -46,6 +46,19 @@ npm test
 
 Without `TRUSS_RUN_INTEGRATION=1`, integration cases are skipped and only unit tests run (suitable for CI without secrets).
 
+### truss CLI live turn test
+
+Requires both Truss and Anthropic keys:
+
+```bash
+export TRUSS_RUN_INTEGRATION=1
+export TRUSS_API_KEY=...
+export ANTHROPIC_API_KEY=...
+npm test
+```
+
+Runs `tests/ask-integration.test.ts` (single Claude + MCP turn).
+
 ### CI
 
 - **CI workflow** (`.github/workflows/ci.yml`): runs on every push/PR — build + unit tests on Node 18 and 20.
