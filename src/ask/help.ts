@@ -10,16 +10,19 @@ Usage:
   truss-mcp ask           REPL for general Q&A (no live Truss queries)
   truss-mcp mcp           Run stdio MCP server (for Cursor / Claude Desktop)
 
+Truss-first
+  Answers prioritize Truss FilterQL (=, !=, LIKE) and Truss product search.
+  External/OSINT is mentioned only after the Truss path or when you ask for it.
+
 search vs ask
-  search  Connects to Truss MCP tools — search products, STIX, FilterQL validation.
-          Use for: "find ransomware reports from the last 7 days"
-  ask     LLM only — explains FilterQL, CTI concepts, how to refine questions.
-          Cannot query Truss. Use for: "what fields can I filter on?"
-          To search live data, type :search inside the REPL (or start with truss-mcp search).
+  search  Live Truss MCP tools — run FilterQL against Truss products and STIX.
+          Coaching questions (build a filter, explain syntax) → type :ask (question carries over).
+  ask     Truss FilterQL coaching only — no live queries. Type run or :search to execute.
 
 Inside search or ask REPL:
   :search   Switch to search mode (enables Truss MCP tools)
-  :ask      Switch to ask mode (disables Truss MCP tools)
+  :ask      Switch to ask mode (FilterQL coaching only)
+  run       Switch to search and run the last confirmed FilterQL
   exit      Leave the REPL (also: quit, :q)
 
 Examples:
