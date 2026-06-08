@@ -91,6 +91,6 @@ export async function runInit(
   console.log('\nNext steps:');
   console.log('  truss-mcp doctor');
   console.log('  truss-mcp search   (threat-intel retrieval)');
-  console.log('  truss-mcp ask      (general assistant)\n');
+  console.log('  truss-mcp ask      (FilterQL coaching)\n');
   return 0;
 }

@@ -63,9 +63,11 @@ truss ask> :search          # enable Truss tools
 truss search> :ask           # disable Truss tools
 ```
 
-After you confirm a FilterQL in **ask** mode, type **`run`** to switch to search and execute it automatically (or `:search` to switch manually).
+After you confirm a FilterQL in **ask** mode, type **`run`** to switch to search and execute it (default **7 days**). Use `:search` to switch manually.
 
-REPL commands: `:search`, `:ask`, `run`, `exit` (also `quit`, `:q`)
+**API quota:** `days 30`, `run 30`, and long date ranges may use more Truss API quota than the 7-day default.
+
+REPL commands: `:search`, `:ask`, `run`, `run 30`, `days`, `filter`, `confirm`, `help`, `clear`, `status`, `exit` (also `quit`, `:q`)
 
 ## First-time setup
 
@@ -105,20 +107,29 @@ truss-mcp search
 Truss Search — live Truss threat intelligence (MCP tools enabled)
 LLM: Anthropic (Claude) | Model: claude-sonnet-4-6 | Tools: 7 Truss MCP tools
 
-truss search> Search for malware reports from the last 7 days
+truss search> Make a filter for Sandworm malware
+# → prompts :ask; question carries over
+
 truss search> :ask
-truss ask> What FilterQL fields did you use?
-truss ask> :search
-truss search> exit
+truss ask> 2
+# → confirm filter; type run
+
+truss ask> run
+# → live search (default last 7 days)
+
+truss ask> run 30
+# → 30-day window (may use more API quota)
+
+truss ask> exit
 ```
 
-### `truss-mcp ask` — no live Truss queries
+### `truss-mcp ask` — FilterQL coaching
 
 ```bash
 truss-mcp ask
 ```
 
-Explains FilterQL and CTI concepts. Cannot search Truss — type `:search` when you need live data.
+Builds and explains Truss FilterQL. Cannot query live data — type **`run`** after confirming a filter (or `:search` to switch manually).
 
 ### MCP host — Cursor or Claude Desktop
 
