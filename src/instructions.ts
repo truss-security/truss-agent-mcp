@@ -107,12 +107,25 @@ After confirmation, end with:
   Or type :search to switch manually.
   For a custom window: days 30 then run, or mention "last 30 days" when confirming (may use more API quota).`;
 
+export const CONTEXT_ONLY_FOLLOWUP = `Context-only follow-ups (no Truss API calls):
+Use conversation history and data the user pasted — do NOT call MCP tools — when ANY of these apply:
+- The user says not to query Truss again, do not hit the API, use previous results, use what you just gave, without searching again, or similar.
+- The user asks to extract, group, deduplicate, normalize, reformat, summarize, or export IOCs/indicators/products from prior search results already in the thread.
+- The user pastes product summaries, IOC lists, or indicator blocks and asks for further processing only.
+
+In those cases:
+1. Do not call search_products, search_products_page, iterate_products_summary, search_products_stix, get_product_stix, validate_filter_expression, or list_filter_attributes.
+2. Work only from prior assistant messages and the user's pasted content. Do not invent indicators or product fields not present in that context.
+3. If required data is missing from the thread, say what is missing and ask the user to paste it or run a new search — do not silently re-fetch from the API.
+4. IOC extraction/dedup/grouping is post-processing of existing results, not a new FilterQL search.`;
+
 export const SEARCH_ERROR_PLAYBOOK = `Search error and edge-case playbook:
 - 0 results: suggest broader tags/aliases, wider date window (note quota), or relaxed LIKE on title.
 - validate_filter_expression failed: quote the error, propose a corrected FilterQL expression, re-validate.
 - hasMore true: summarize current page, offer search_products_page for next page or suggest narrowing the filter.
 - STIX request: get_product_stix for one id; search_products_stix for a matching set.
-- API or rate-limit errors: state plainly, suggest narrower filter or smaller window, retry once.`;
+- API or rate-limit errors: state plainly, suggest narrower filter or smaller window, retry once.
+- Follow-up on prior results: see Context-only follow-ups — honor "do not query again" and skip all MCP tools.`;
 
 export const NAMED_THREAT_WORKFLOW_BASE = `Named-threat filter workflow (malware, APT, campaign — e.g. Sandworm, LockBit, APT29):
 1. Draft a primary Truss filter: tags = "PrimaryName".
@@ -134,13 +147,15 @@ export const NAMED_THREAT_WORKFLOW_MCP = `${NAMED_THREAT_WORKFLOW_BASE}
 7. In search mode: validate the expression, then run the search once approved.`;
 
 export const MCP_TOOL_WORKFLOW = `Tool workflow:
+0. If the request is a context-only follow-up (process/dedupe/format prior results; user said do not query Truss again), skip all tool calls — see Context-only follow-ups.
 1. Draft filterExpression from the user's Truss-focused question.
 2. Call validate_filter_expression before search_products when you generated the expression.
 3. Call list_filter_attributes when unsure of allowed fields or operators.
 4. Default days to ${DEFAULT_SEARCH_DAYS} and limit to 25 unless the user needs more; respect rate limits.
 5. Prefer ${DEFAULT_SEARCH_DAYS}-day default to conserve Truss API quota; use wider windows only when requested.
-6. Cite results by Truss product numeric id and title.
-7. Admin-only Truss routes (smart search, vector search, native product JSON) are not available.`;
+6. When the user needs full IOC values from a new search, pass include_indicators: true to search_products.
+7. Cite results by Truss product numeric id and title.
+8. Admin-only Truss routes (smart search, vector search, native product JSON) are not available.`;
 
 export const MCP_HOST_INSTRUCTIONS = `You query Truss threat intelligence products via FilterQL and MCP tools.
 
@@ -157,6 +172,8 @@ ${NAMED_THREAT_WORKFLOW_MCP}
 ${MCP_TOOL_WORKFLOW}
 
 ${SEARCH_RESPONSE_FORMAT}
+
+${CONTEXT_ONLY_FOLLOWUP}
 
 ${SEARCH_ERROR_PLAYBOOK}`;
 
@@ -178,10 +195,13 @@ ${MCP_TOOL_WORKFLOW}
 
 ${SEARCH_RESPONSE_FORMAT}
 
+${CONTEXT_ONLY_FOLLOWUP}
+
 ${SEARCH_ERROR_PLAYBOOK}
 
 Coaching vs live search:
 - Live Truss retrieval (search, find, list products, run a filter) — stay here and use MCP tools.
+- Follow-up on prior results (extract/dedupe/group IOCs, reformat summaries) — context-only; no MCP tools unless the user explicitly asks for a new search.
 - Filter-building, syntax help, alias research, explanations, or "make me a filter" — do NOT coach at length. Tell the user: "Type :ask to switch to FilterQL coaching (no live queries)." After they build a filter in ask mode, they type run to execute.`;
 
 /** @deprecated Use MCP_HOST_INSTRUCTIONS for MCP server; kept for backward-compatible imports. */
