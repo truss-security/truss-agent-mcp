@@ -82,6 +82,9 @@ In the Truss MCP REPL, use `run` after confirming a filter (default 7 days), or 
 4. Call `validate_filter_expression`.
 5. Call `search_products` with `limit` ≤ 25 unless the user needs more.
 6. Cite results using Truss `id` and `title`.
+7. For follow-ups on prior results (extract/dedupe/group IOCs, reformat summaries) or when the user says not to query Truss again — use conversation context only; do not call MCP tools.
+
+Use `include_indicators: true` on `search_products` when a **new** search must return full IOC values.
 
 ## Common mistakes
 
