@@ -4,11 +4,16 @@
 
 1. Ensure you are logged in: `npm login`
 2. Bump version in `package.json`
-3. Build and publish:
+3. Verify build, tests, and stdio startup:
 
 ```bash
-npm run build
 npm test
+npm run smoke
+```
+
+4. Publish:
+
+```bash
 npm publish --access public
 ```
 
@@ -24,9 +29,24 @@ The server sets `userAgent: truss-agent-mcp/<version>` on every SDK request. SDK
 
 ## Integration tests
 
+Live API tests are opt-in. They exercise `POST /product/search`, `POST /product/search/stix`, and `GET /product/{id}/stix` against a real Truss API key.
+
+| Variable | Required | Default | Purpose |
+|----------|----------|---------|---------|
+| `TRUSS_RUN_INTEGRATION` | yes | — | Set to `1` to enable live tests |
+| `TRUSS_API_KEY` | yes | — | API key with product search access |
+| `TRUSS_API_URL` | no | `https://api.truss-security.com` | Use `https://api-test.truss-security.com` for test |
+
 ```bash
-export TRUSS_API_KEY=...
+export TRUSS_API_KEY=your_key_here
 export TRUSS_API_URL=https://api-test.truss-security.com
 export TRUSS_RUN_INTEGRATION=1
 npm test
 ```
+
+Without `TRUSS_RUN_INTEGRATION=1`, integration cases are skipped and only unit tests run (suitable for CI without secrets).
+
+### CI
+
+- **CI workflow** (`.github/workflows/ci.yml`): runs on every push/PR — build + unit tests on Node 18 and 20.
+- **Integration workflow** (`.github/workflows/integration.yml`): manual `workflow_dispatch` — requires `TRUSS_API_KEY` repository secret.

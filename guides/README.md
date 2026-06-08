@@ -8,3 +8,4 @@
 | [filterql-cookbook.md](./filterql-cookbook.md) | NL intent → FilterQL examples |
 | [truss-agent-vs-mcp.md](./truss-agent-vs-mcp.md) | When to use scheduled agent vs MCP |
 | [publishing.md](./publishing.md) | npm release and integration tests |
+| [mcp-acceptance.md](./mcp-acceptance.md) | End-to-end MCP host verification checklist |

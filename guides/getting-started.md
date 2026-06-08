@@ -63,5 +63,6 @@ and `days: 30`.
 
 - [FilterQL cookbook](./filterql-cookbook.md)
 - [truss-agent vs MCP](./truss-agent-vs-mcp.md)
+- [MCP acceptance checklist](./mcp-acceptance.md)
 - [Documentation index](../docs/README.md)
 - [Truss API roadmap](../docs/06-api-roadmap.md) — planned quota, contributor POST, smart search, and product GET (not yet shipped)
