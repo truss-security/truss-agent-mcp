@@ -4,41 +4,52 @@
 
 - Node.js 18+
 - A Truss API key with access to product search (from the Truss dashboard)
-- An MCP-capable host (Cursor, Claude Desktop, VS Code, etc.)
 
 ## Install
 
-From npm (after publish):
-
-```bash
-npx -y @truss-security/truss-agent-mcp
-```
-
-From source:
+> Package is **not published to npm yet**. Install from the repo:
 
 ```bash
 git clone https://github.com/truss-security/truss-agent-mcp.git
 cd truss-agent-mcp
 npm install
 npm run build
-node dist/cli.js
+npm install -g .    # optional — truss-mcp on PATH
 ```
 
-## Environment
+After npm publish: `npm install -g @truss-security/truss-agent-mcp` or `npx -y @truss-security/truss-agent-mcp mcp`.
 
-Copy `env.example` to `.env` or set variables in your MCP host config:
+## First-time setup
+
+**Global install:**
 
 ```bash
-TRUSS_API_KEY=your_key_here
-TRUSS_API_URL=https://api.truss-security.com
+truss-mcp init    # interactive — prompts for API keys
+truss-mcp doctor
 ```
 
-Optional caps:
+**From source** (local `npm install` does not add `truss-mcp` to your shell PATH):
 
 ```bash
-TRUSS_MCP_MAX_LIMIT=50
-TRUSS_MCP_MAX_PAGES=3
+npm run truss:init
+npm run truss:doctor
 ```
+
+Or install globally from the repo: `npm install -g .` then use `truss-mcp` as above.
+
+Edit `.env` — set `TRUSS_API_KEY` (and `ANTHROPIC_API_KEY` for the terminal CLI).
+
+Env files are loaded from `~/.config/truss/env`, `~/.truss/.env`, then `./.env` (shell variables always win).
+
+## Commands (single binary)
+
+| Command | Purpose |
+|---------|---------|
+| `truss-mcp mcp` | stdio MCP server for Cursor, Claude Desktop, etc. |
+| `truss-mcp search` / `ask` | Terminal REPL with Claude |
+| `truss-mcp init` / `doctor` | Setup and validation |
+
+CLI guide: [truss-cli.md](./truss-cli.md)
 
 ## Configure your MCP host
 
@@ -47,17 +58,15 @@ TRUSS_MCP_MAX_PAGES=3
 
 ## Try a query
 
-Ask your assistant:
+In an MCP host, ask:
 
 > Search Truss for ransomware affecting healthcare in the last 30 days.
 
-The host should call `validate_filter_expression` then `search_products` with something like:
+From the terminal CLI:
 
+```bash
+truss-mcp search
 ```
-category = "Ransomware" AND industry = "Healthcare"
-```
-
-and `days: 30`.
 
 ## Next steps
 

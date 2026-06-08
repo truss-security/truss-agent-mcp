@@ -55,7 +55,7 @@ describe('loadConfig', () => {
     assert.equal(config.maxLimit, 50);
     assert.equal(config.maxPages, 3);
     assert.equal(config.debounceMs, 200);
-    assert.match(config.userAgent, /^truss-agent-mcp\//);
+    assert.match(config.userAgent, /^truss-mcp\//);
   });
 
   it('strips trailing slashes from TRUSS_API_URL', async () => {

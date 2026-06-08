@@ -50,9 +50,9 @@ describe('integration (optional)', () => {
       page: 1,
     });
 
-    assert.ok(stix);
-    assert.equal(stix.type, 'bundle');
-    assert.ok(Array.isArray(stix.objects));
+    assert.ok(stix.bundle);
+    assert.equal(stix.bundle.type, 'bundle');
+    assert.ok(Array.isArray(stix.bundle.objects));
   });
 
   it('fetches single-product STIX via GET /product/{id}/stix', async (t) => {

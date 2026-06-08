@@ -1,142 +1,105 @@
 # truss-agent-mcp
 
-Official [Model Context Protocol](https://modelcontextprotocol.io) server for querying Truss threat intelligence — plus a **`truss` terminal CLI** powered by Claude.
+Official [Model Context Protocol](https://modelcontextprotocol.io) server for querying Truss threat intelligence — all via the **`truss-mcp`** binary.
 
 Uses the public Truss API tier: `POST /product/search` and STIX routes with **FilterQL**.
 
-## Two ways to use it
-
-| Surface | Command | Best for |
-|---------|---------|----------|
-| **Terminal CLI** | `truss search` / `truss ask` | Natural-language queries from your shell |
-| **MCP server** | `truss-agent-mcp` | Cursor, Claude Desktop, VS Code, other MCP hosts |
-
-Both paths call the same Truss API tools. The CLI adds Claude on top; MCP hosts use their own LLM.
-
 ## Install
 
-```bash
-npm install -g @truss-security/truss-agent-mcp
-# or from source:
-git clone https://github.com/truss-security/truss-agent-mcp.git
-cd truss-agent-mcp && npm install && npm run build
-```
+> **Not on npm yet.** Until `@truss-security/truss-agent-mcp` is published, install from this repo (below). After publish: `npm install -g @truss-security/truss-agent-mcp`.
 
-Requires Node.js 18+.
-
-## truss CLI — quick start
-
-Set keys in your shell or copy `env.example` to `.env`:
+**From this repo (works today):**
 
 ```bash
-TRUSS_API_KEY=your_truss_key
-ANTHROPIC_API_KEY=your_anthropic_key
+cd truss-agent-mcp
+npm install
+npm run build
+npm install -g .          # puts truss-mcp on your PATH
+truss-mcp init
+truss-mcp doctor
 ```
+
+Without global install, use npm scripts: `npm run truss:init`, `npm run truss:search`, etc.
+
+| Method | Command |
+|--------|---------|
+| **Global (local)** | `npm install -g .` (from repo root, after `npm run build`) |
+| **Global (npm)** | `npm install -g @truss-security/truss-agent-mcp` *(after publish)* |
+| **One-shot MCP** | `npx -y @truss-security/truss-agent-mcp mcp` *(after publish)* |
+| **One-shot CLI** | `npx -y @truss-security/truss-agent-mcp search` *(after publish)* |
+
+Requires Node.js 18+. Single binary: **`truss-mcp`** (avoids conflict with `@truss-security/truss-sdk`'s `truss` bin).
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `truss-mcp mcp` | stdio MCP server (Cursor, Claude Desktop, VS Code) |
+| `truss-mcp search` | Threat-intel REPL with Claude |
+| `truss-mcp ask` | General assistant REPL with Claude |
+| `truss-mcp init` | Create `.env` from template |
+| `truss-mcp doctor` | Validate keys and API access |
+| `truss-mcp version` | Print version |
+| `truss-mcp help` | Show usage |
+
+## First-time setup
+
+**After global install** (`npm install -g .` from repo, or from npm after publish):
 
 ```bash
-truss help      # usage
-truss search    # threat-intel retrieval REPL
-truss ask       # general assistant REPL
+truss-mcp init          # prompts for TRUSS_API_KEY and ANTHROPIC_API_KEY
+truss-mcp doctor
 ```
 
-From source without a global install:
+**From a cloned repo** (local `npm install` does not put `truss-mcp` on your PATH):
 
 ```bash
-npm run truss:search
-npm run truss:ask
+npm install && npm run build
+npm run truss:init
+npm run truss:doctor
 ```
 
-**Note:** `@truss-security/truss-sdk` also ships a `truss` binary (`truss examples`). Installing both packages globally may cause a bin name conflict.
+To use `truss-mcp` on your PATH from source: `npm install -g .` or `npm link`.
+
+Env files are loaded from (shell variables always win):
+
+1. `~/.config/truss/env` or `~/.truss/.env` (user)
+2. `./.env` in the current directory (project)
 
 ---
 
 ## Examples
 
-### `truss search` — find threat intelligence
-
-Use when you want to **pull data**: search products, paginate, export STIX. Claude translates your question to FilterQL and calls Truss tools.
+### `truss-mcp search`
 
 ```bash
-truss search
+truss-mcp search
 ```
 
 ```
 Truss Search — threat intelligence retrieval
 Model: claude-sonnet-4-6 | Tools: 7
-Type a question, or: exit | quit | :q
 
-> Search for malware reports from the last 7 days
-
-[Claude validates FilterQL, runs search_products, returns product ids, titles, categories]
-
-> Narrow that to ransomware only
-
-[Follow-up uses conversation context — refines filter and searches again]
-
-> Export the top 5 matches as STIX
-
-[Claude calls search_products_stix with a narrow filter]
-
-> Get STIX bundle for product id 48291
-
-[Claude calls get_product_stix for a single product]
-
-> exit
+truss search> Search for malware reports from the last 7 days
+truss search> exit
 ```
 
-**Good prompts for `truss search`:**
-
-- "Malware targeting healthcare in the last 30 days"
-- "Products from source FeedA published this week"
-- "Show me 10 recent phishing reports, newest first"
-- "Validate this filter: `category = \"Ransomware\" AND industry = \"Healthcare\"`"
-
-### `truss ask` — general questions + Truss when needed
-
-Use when you want to **learn, explain, or explore** — Claude answers freely and only hits Truss when you need live data.
+### `truss-mcp ask`
 
 ```bash
-truss ask
+truss-mcp ask
 ```
 
-```
-Truss Ask — general assistant
-Model: claude-sonnet-4-6 | Tools: 7
-Type a question, or: exit | quit | :q
+### MCP host — Cursor or Claude Desktop
 
-> What is FilterQL and which fields can I filter on?
-
-[Claude explains FilterQL; may call list_filter_attributes]
-
-> When should I use source vs category in a filter?
-
-[Conceptual answer — no search unless needed]
-
-> OK, search Truss for ransomware from FeedA in the last 14 days
-
-[Claude runs a search because you asked for live data]
-
-> exit
-```
-
-**Good prompts for `truss ask`:**
-
-- "How do I build a FilterQL query for multiple categories?"
-- "What's the difference between search_products and search_products_stix?"
-- "Search Truss for APT activity related to energy sector this month"
-
-### MCP server — use in Cursor or Claude Desktop
-
-For AI-assisted workflows inside an editor or chat app, run the MCP server (stdio). Only `TRUSS_API_KEY` is required — the host provides the LLM.
-
-**Cursor** (`.cursor/mcp.json`):
+Only `TRUSS_API_KEY` required — the host provides the LLM.
 
 ```json
 {
   "mcpServers": {
-    "truss-agent-mcp": {
+    "truss-mcp": {
       "command": "npx",
-      "args": ["-y", "@truss-security/truss-agent-mcp"],
+      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
       "env": {
         "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY",
         "TRUSS_API_URL": "https://api.truss-security.com"
@@ -146,11 +109,19 @@ For AI-assisted workflows inside an editor or chat app, run the MCP server (stdi
 }
 ```
 
-**Example prompts in the host:**
+Global install:
 
-- "List Truss FilterQL attributes"
-- "Search Truss for malware from the last 7 days"
-- "Get STIX for product id 12345"
+```json
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "command": "truss-mcp",
+      "args": ["mcp"],
+      "env": { "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY" }
+    }
+  }
+}
+```
 
 See [config/cursor.mcp.json](./config/cursor.mcp.json) and [guides/getting-started.md](./guides/getting-started.md).
 
@@ -158,12 +129,15 @@ See [config/cursor.mcp.json](./config/cursor.mcp.json) and [guides/getting-start
 
 ## Environment variables
 
-| Variable | CLI | MCP server | Default |
-|----------|-----|------------|---------|
+| Variable | CLI | MCP (`mcp`) | Default |
+|----------|-----|-------------|---------|
 | `TRUSS_API_KEY` | required | required | — |
-| `ANTHROPIC_API_KEY` | required | — | — |
-| `ANTHROPIC_MODEL` | optional | — | `claude-sonnet-4-6` |
+| `LLM_PROVIDER` | optional | — | `anthropic` |
+| `LLM_MODEL` | optional | — | cheapest model for provider |
+| `ANTHROPIC_API_KEY` | when provider=anthropic | — | — |
+| `OPENAI_API_KEY` | when provider=openai | — | — |
 | `TRUSS_API_URL` | optional | optional | `https://api.truss-security.com` |
+| `TRUSS_MCP_SERVER_PATH` | optional | — | auto `dist/truss-cli.js` |
 | `TRUSS_MCP_MAX_LIMIT` | optional | optional | `50` |
 | `TRUSS_MCP_MAX_PAGES` | optional | optional | `3` |
 
@@ -175,14 +149,17 @@ Full list: [env.example](./env.example). CLI guide: [guides/truss-cli.md](./guid
 |--|--|
 | [docs/](./docs/) | Architecture, API contract, tool catalog |
 | [guides/](./guides/) | Getting started, client setup, FilterQL cookbook |
-| [guides/truss-cli.md](./guides/truss-cli.md) | Terminal REPL reference |
+| [guides/truss-cli.md](./guides/truss-cli.md) | Terminal CLI reference |
+| [CHANGELOG.md](./CHANGELOG.md) | Release notes |
 
 ## Development
 
 ```bash
 npm install
 npm run build
-TRUSS_API_KEY=... npm run dev          # MCP server (stdio)
+npm run truss:init
+npm run truss:doctor
+TRUSS_API_KEY=... npm run dev              # truss-mcp mcp (stdio)
 TRUSS_API_KEY=... ANTHROPIC_API_KEY=... npm run truss:search
 npm test
 ```
@@ -190,9 +167,11 @@ npm test
 ## Publish
 
 ```bash
-npm run build
+npm test
 npm publish --access public
 ```
+
+Tag `v1.x.x` to trigger the [release workflow](./.github/workflows/release.yml) (requires `NPM_TOKEN` secret).
 
 ## Related projects
 

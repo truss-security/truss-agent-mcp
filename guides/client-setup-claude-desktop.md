@@ -12,9 +12,9 @@ See [../config/claude_desktop_config.json](../config/claude_desktop_config.json)
 ```json
 {
   "mcpServers": {
-    "truss-agent-mcp": {
+    "truss-mcp": {
       "command": "npx",
-      "args": ["-y", "@truss-security/truss-agent-mcp"],
+      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
       "env": {
         "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY",
         "TRUSS_API_URL": "https://api.truss-security.com"
@@ -23,6 +23,8 @@ See [../config/claude_desktop_config.json](../config/claude_desktop_config.json)
   }
 }
 ```
+
+After global install, use `"command": "truss-mcp"` and `"args": ["mcp"]`.
 
 ## Restart Claude Desktop
 

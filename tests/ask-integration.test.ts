@@ -12,7 +12,7 @@ const skipReason =
   'Set TRUSS_RUN_INTEGRATION=1, TRUSS_API_KEY, and ANTHROPIC_API_KEY to run live ask test';
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const serverPath = join(packageRoot, 'dist', 'cli.js');
+const serverPath = join(packageRoot, 'dist', 'truss-cli.js');
 
 describe('ask integration (optional)', () => {
   it('runs a single turn against Claude and Truss MCP', async (t) => {
@@ -21,12 +21,11 @@ describe('ask integration (optional)', () => {
       return;
     }
 
-    process.env.TRUSS_ASK_SERVER_PATH = serverPath;
+    process.env.TRUSS_MCP_SERVER_PATH = serverPath;
 
     const { loadAskConfig } = await import('../src/ask/config.ts');
     const { connectMcpSession } = await import('../src/ask/mcp-session.ts');
     const { runTurn } = await import('../src/ask/run-turn.ts');
-    const { extractTextFromContent } = await import('../src/ask/print-response.ts');
     const { getSystemPrompt } = await import('../src/ask/system-prompt.ts');
 
     const config = loadAskConfig(import.meta.url);
@@ -36,11 +35,11 @@ describe('ask integration (optional)', () => {
       const result = await runTurn(
         config,
         session,
-        [],
+        undefined,
         'List the Truss FilterQL attributes. Reply briefly.',
         getSystemPrompt('search')
       );
-      const text = extractTextFromContent(result.content);
+      const text = result.displayText;
       assert.ok(text.length > 0);
       assert.match(text.toLowerCase(), /category|filter|attribute/);
     } finally {

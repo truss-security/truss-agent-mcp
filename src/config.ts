@@ -50,6 +50,6 @@ export function loadConfig(): McpServerConfig {
     maxLimit: parsePositiveInt(process.env.TRUSS_MCP_MAX_LIMIT, 50),
     maxPages: parsePositiveInt(process.env.TRUSS_MCP_MAX_PAGES, 3),
     debounceMs: parsePositiveInt(process.env.TRUSS_MCP_DEBOUNCE_MS, 200),
-    userAgent: `truss-agent-mcp/${version}`,
+    userAgent: `truss-mcp/${version}`,
   };
 }

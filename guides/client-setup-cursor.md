@@ -13,13 +13,27 @@ Use the example in [../config/cursor.mcp.json](../config/cursor.mcp.json):
 ```json
 {
   "mcpServers": {
-    "truss-agent-mcp": {
+    "truss-mcp": {
       "command": "npx",
-      "args": ["-y", "@truss-security/truss-agent-mcp"],
+      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
       "env": {
         "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY",
         "TRUSS_API_URL": "https://api.truss-security.com"
       }
+    }
+  }
+}
+```
+
+After global install:
+
+```json
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "command": "truss-mcp",
+      "args": ["mcp"],
+      "env": { "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY" }
     }
   }
 }
@@ -30,12 +44,10 @@ For local development from a cloned repo:
 ```json
 {
   "mcpServers": {
-    "truss-agent-mcp": {
+    "truss-mcp": {
       "command": "node",
-      "args": ["/absolute/path/to/truss-agent-mcp/dist/cli.js"],
-      "env": {
-        "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY"
-      }
+      "args": ["/absolute/path/to/truss-agent-mcp/dist/truss-cli.js", "mcp"],
+      "env": { "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY" }
     }
   }
 }
@@ -43,7 +55,7 @@ For local development from a cloned repo:
 
 ## 3. Reload MCP
 
-Restart MCP or reload the window. Confirm `truss-agent-mcp` appears with tools listed in [../docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
+Restart MCP or reload the window. Confirm `truss-mcp` appears with tools listed in [../docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
 
 ## 4. Security
 

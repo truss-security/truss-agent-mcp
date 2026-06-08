@@ -1,4 +1,6 @@
+import { resolveLlmFromEnv } from './providers/resolve.js';
 import { resolveServerCliPath } from './resolve-server-path.js';
+import type { LlmProviderId } from './providers/catalog.js';
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (value == null || value.trim() === '') return fallback;
@@ -16,7 +18,9 @@ function requireEnv(name: string): string {
 
 export interface AskConfig {
   trussApiKey: string;
-  anthropicApiKey: string;
+  provider: LlmProviderId;
+  llmApiKey: string;
+  llmApiKeyEnv: string;
   model: string;
   trussApiUrl: string;
   serverCliPath: string;
@@ -26,10 +30,14 @@ export interface AskConfig {
 }
 
 export function loadAskConfig(fromModuleUrl?: string): AskConfig {
+  const llm = resolveLlmFromEnv();
+
   return {
     trussApiKey: requireEnv('TRUSS_API_KEY'),
-    anthropicApiKey: requireEnv('ANTHROPIC_API_KEY'),
-    model: process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-4-6',
+    provider: llm.provider,
+    llmApiKey: llm.apiKey,
+    llmApiKeyEnv: llm.apiKeyEnv,
+    model: llm.model,
     trussApiUrl: (process.env.TRUSS_API_URL?.trim() || 'https://api.truss-security.com').replace(
       /\/+$/,
       ''

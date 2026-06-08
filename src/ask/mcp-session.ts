@@ -12,7 +12,7 @@ export interface McpSession {
 export async function connectMcpSession(config: AskConfig): Promise<McpSession> {
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: [config.serverCliPath],
+    args: [config.serverCliPath, 'mcp'],
     env: {
       TRUSS_API_KEY: config.trussApiKey,
       TRUSS_API_URL: config.trussApiUrl,

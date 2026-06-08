@@ -51,7 +51,7 @@ Enforced by **API Gateway usage plans** (429 from gateway). Typical customer pla
 
 ## User agent
 
-The server sets `userAgent: truss-agent-mcp/<version>` on the SDK client for support attribution.
+The server sets `userAgent: truss-mcp/<version>` on the SDK client for support attribution.
 
 ## Legacy `/agent-data`
 

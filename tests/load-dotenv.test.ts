@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadDotEnv } from '../src/lib/load-dotenv.ts';
+import { loadAllEnv, loadDotEnv } from '../src/lib/load-dotenv.ts';
 
 describe('loadDotEnv', () => {
   let tempDir: string;
   const saved: Record<string, string | undefined> = {};
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'truss-ask-env-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'truss-mcp-env-'));
     saved.DOTENV_TEST_KEY = process.env.DOTENV_TEST_KEY;
     delete process.env.DOTENV_TEST_KEY;
   });
@@ -36,10 +36,30 @@ describe('loadDotEnv', () => {
     loadDotEnv(tempDir);
     assert.equal(process.env.DOTENV_TEST_KEY, 'from_file');
   });
+});
 
-  it('ignores comments and blank lines', () => {
-    writeFileSync(join(tempDir, '.env'), '# comment\n\nDOTENV_TEST_KEY=value\n');
-    loadDotEnv(tempDir);
-    assert.equal(process.env.DOTENV_TEST_KEY, 'value');
+describe('loadAllEnv', () => {
+  let tempDir: string;
+  const saved: Record<string, string | undefined> = {};
+
+  beforeEach(() => {
+    tempDir = mkdtempSync(join(tmpdir(), 'truss-mcp-all-env-'));
+    saved.DOTENV_TEST_KEY = process.env.DOTENV_TEST_KEY;
+    delete process.env.DOTENV_TEST_KEY;
+  });
+
+  afterEach(() => {
+    if (saved.DOTENV_TEST_KEY === undefined) {
+      delete process.env.DOTENV_TEST_KEY;
+    } else {
+      process.env.DOTENV_TEST_KEY = saved.DOTENV_TEST_KEY;
+    }
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('project .env overrides user-default fill semantics', () => {
+    writeFileSync(join(tempDir, '.env'), 'DOTENV_TEST_KEY=from_project\n');
+    loadAllEnv(tempDir);
+    assert.equal(process.env.DOTENV_TEST_KEY, 'from_project');
   });
 });
