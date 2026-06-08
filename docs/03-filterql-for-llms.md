@@ -68,8 +68,11 @@ tags = "Sandworm"
 
 Pass separately in tool args (not inside FilterQL):
 
-- `days: 7` — rolling last 7 days
-- `startDate` / `endDate` — explicit range
+- `days: 7` — rolling last 7 days (**default**; lowest quota use)
+- `days: 30` or longer ranges — only when the user requests; may use additional Truss API quota
+- `startDate` / `endDate` — explicit range (e.g. `startDate: "2026-06-01"`, `endDate: "2026-06-08"`)
+
+In the Truss MCP REPL, use `run` after confirming a filter (default 7 days), or `run 30` / `days 30` for custom rolling windows.
 
 ## Workflow
 

@@ -6,9 +6,20 @@ export const orderBySchema = z
 
 export const searchInputSchema = z.object({
   filterExpression: z.string().optional().describe('FilterQL expression'),
-  days: z.number().int().positive().optional().describe('Rolling day window'),
-  startDate: z.string().optional().describe('Start date (ISO or YYYY-MM-DD)'),
-  endDate: z.string().optional().describe('End date (ISO or YYYY-MM-DD)'),
+  days: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe('Rolling day window; default 7. Wider windows may use more Truss API quota.'),
+  startDate: z
+    .string()
+    .optional()
+    .describe('Start date (ISO or YYYY-MM-DD). Use with endDate instead of days for explicit ranges.'),
+  endDate: z
+    .string()
+    .optional()
+    .describe('End date (ISO or YYYY-MM-DD). Long ranges may use more Truss API quota.'),
   page: z.number().int().positive().optional().default(1),
   limit: z.number().int().positive().optional().default(25),
   order_by: orderBySchema,

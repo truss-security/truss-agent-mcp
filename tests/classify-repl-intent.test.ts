@@ -21,4 +21,9 @@ describe('shouldSuggestAskMode', () => {
     assert.equal(shouldSuggestAskMode('Find reports tagged Sandworm from last 30 days'), false);
     assert.equal(shouldSuggestAskMode('List products with tags = "APT44"'), false);
   });
+
+  it('exempts search-context refinement', () => {
+    assert.equal(shouldSuggestAskMode('Explain why this search returned 0 results'), false);
+    assert.equal(shouldSuggestAskMode('No matches — refine this search'), false);
+  });
 });

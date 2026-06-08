@@ -6,6 +6,7 @@ import {
 } from '@truss-security/truss-sdk';
 import { z } from 'zod';
 import type { McpServerConfig } from '../config.js';
+import { DEFAULT_SEARCH_DAYS } from '../instructions.js';
 import { getTrussClient } from '../client.js';
 import { debounceApiCall } from '../lib/debounce.js';
 import { formatTrussError } from '../lib/errors.js';
@@ -67,7 +68,7 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     {
       title: 'List FilterQL attributes',
       description:
-        'Returns allowed FilterQL attribute names and supported comparison/logical operators.',
+        'Returns allowed FilterQL attribute names and supported comparison/logical operators. Call when unsure of field names before drafting filterExpression.',
       inputSchema: z.object({}),
     },
     async () => {
@@ -83,7 +84,8 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     'validate_filter_expression',
     {
       title: 'Validate FilterQL',
-      description: 'Check FilterQL syntax before calling search_products.',
+      description:
+        'Check FilterQL syntax before calling search_products. Always call this when you authored the filterExpression.',
       inputSchema: z.object({
         filterExpression: z.string().describe('FilterQL expression to validate'),
       }),
@@ -116,7 +118,7 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     {
       title: 'Search Truss products',
       description:
-        'Search threat intelligence products using FilterQL (filterExpression) and optional date window.',
+        `Search threat intelligence products using FilterQL (filterExpression) and optional date window. Default days: ${DEFAULT_SEARCH_DAYS}. Validate first. Prefer ${DEFAULT_SEARCH_DAYS}-day default to conserve quota; widen only when the user requests.`,
       inputSchema: searchInputSchema,
     },
     runSearch
@@ -126,7 +128,8 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     'search_products_page',
     {
       title: 'Search Truss products (paginated)',
-      description: 'Same as search_products; use when hasMore is true and you need the next page.',
+      description:
+        'Same as search_products; call when the prior response has hasMore: true and you need the next page. Increment page.',
       inputSchema: searchInputSchema,
     },
     runSearch
@@ -137,7 +140,7 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     {
       title: 'Iterate Truss products (capped pages)',
       description:
-        'Fetches multiple pages of product summaries up to TRUSS_MCP_MAX_PAGES. Use narrow filters.',
+        `Fetches multiple pages of product summaries up to TRUSS_MCP_MAX_PAGES. Use only with narrow filters — multiplies API quota. Default days: ${DEFAULT_SEARCH_DAYS}.`,
       inputSchema: iterateInputSchema,
     },
     async (input: IterateToolInput) => {
@@ -175,7 +178,8 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     'search_products_stix',
     {
       title: 'Search Truss products (STIX)',
-      description: 'Returns a STIX 2.x bundle for products matching the FilterQL filter.',
+      description:
+        `Returns a STIX 2.x bundle for products matching the FilterQL filter. Use when the user asks for STIX export of a search result set. Default days: ${DEFAULT_SEARCH_DAYS}.`,
       inputSchema: stixSearchInputSchema,
     },
     async (input: StixSearchToolInput) => {
@@ -200,7 +204,8 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
     'get_product_stix',
     {
       title: 'Get product STIX bundle',
-      description: 'Fetch a STIX 2.x bundle for a single product by numeric id.',
+      description:
+        'Fetch a STIX 2.x bundle for a single product by numeric id. Use when the user asks for STIX for one product.',
       inputSchema: z.object({
         productId: z.number().int().positive().describe('Truss product numeric id'),
       }),
