@@ -11,6 +11,12 @@ Reference documentation for the Truss MCP server and public API integration tier
 | [05-reference-server-architecture.md](./05-reference-server-architecture.md) | stdio transport, env, errors, response shaping |
 | [06-api-roadmap.md](./06-api-roadmap.md) | Planned Truss API, SDK, and MCP capabilities (not yet shipped) |
 
+### AI Assistant multi-agent (conceptualization)
+
+| Document | Description |
+|----------|-------------|
+| [aiAssistantPlan/](./aiAssistantPlan/README.md) | Dashboard AI Assistant orchestrator + agent model (docs only; no implementation) |
+
 ## Guides (task-oriented)
 
 See [../guides/](../guides/) for install and client setup walkthroughs.
