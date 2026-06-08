@@ -34,6 +34,7 @@ describe('ask integration (optional)', () => {
     try {
       const result = await runTurn(
         config,
+        'search',
         session,
         undefined,
         'List the Truss FilterQL attributes. Reply briefly.',
