@@ -26,4 +26,17 @@ describe('shouldSuggestAskMode', () => {
     assert.equal(shouldSuggestAskMode('Explain why this search returned 0 results'), false);
     assert.equal(shouldSuggestAskMode('No matches — refine this search'), false);
   });
+
+  it('exempts context-only follow-ups on prior results', () => {
+    assert.equal(
+      shouldSuggestAskMode(
+        "Don't query truss api again — group and deduplicate the IOCs you just gave me"
+      ),
+      false
+    );
+    assert.equal(
+      shouldSuggestAskMode('Extract all IOC indicators from these returned products'),
+      false
+    );
+  });
 });

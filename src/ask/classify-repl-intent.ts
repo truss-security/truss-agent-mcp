@@ -2,7 +2,7 @@ const SEARCH_VERBS =
   /\b(search|find|list|show|get|query|fetch|retrieve|run|look\s*up|pull\s+up)\b/i;
 
 const SEARCH_CONTEXT_EXEMPT =
-  /\b(explain\s+why|0\s+results?|no\s+matches?|refine\s+this\s+search|why\s+(?:did|does)\s+this|no\s+products?)\b/i;
+  /\b(explain\s+why|0\s+results?|no\s+matches?|refine\s+this\s+search|why\s+(?:did|does)\s+this|no\s+products?|(?:don'?t|do\s+not)\s+(?:query|hit|call|use)\s+(?:truss|the\s+api)|without\s+(?:searching|querying)\s+again|(?:from|using)\s+(?:previous|prior|these)\s+results?|these\s+returned|returned\s+products?|what\s+you\s+(?:just\s+)?gave|extract\s+(?:all\s+)?iocs?|dedupe|deduplicat|group(?:ed)?\s+and\s+dedup)\b/i;
 
 const ASK_INTENT_PATTERNS = [
   /\b(make|build|create|write|draft|design)\b.*\b(filter|filterql|query)\b/i,

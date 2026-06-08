@@ -19,6 +19,8 @@ describe('system prompts', () => {
     assert.match(SEARCH_SYSTEM_PROMPT, /validate_filter_expression/i);
     assert.match(SEARCH_SYSTEM_PROMPT, /:ask/);
     assert.match(SEARCH_SYSTEM_PROMPT, /run/);
+    assert.match(SEARCH_SYSTEM_PROMPT, /do not call MCP tools/i);
+    assert.match(SEARCH_SYSTEM_PROMPT, /context-only/i);
   });
 
   it('ASK_SYSTEM_PROMPT is Truss-first FilterQL coaching without live search', () => {
