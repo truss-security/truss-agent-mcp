@@ -1,77 +1,68 @@
 # Getting started
 
-## Prerequisites
-
-- Node.js 18+
-- A Truss API key with access to product search (from the Truss dashboard)
-
 ## Install
-
-> Package is **not published to npm yet**. Install from the repo:
 
 ```bash
 git clone https://github.com/truss-security/truss-agent-mcp.git
 cd truss-agent-mcp
-npm install
-npm run build
-npm install -g .    # optional — truss-mcp on PATH
-```
-
-After npm publish: `npm install -g @truss-security/truss-agent-mcp` or `npx -y @truss-security/truss-agent-mcp mcp`.
-
-## First-time setup
-
-**Global install:**
-
-```bash
-truss-mcp init    # interactive — prompts for API keys
+npm install && npm run build
+npm install -g .          # optional — truss-mcp on PATH
+truss-mcp init
 truss-mcp doctor
 ```
 
-**From source** (local `npm install` does not add `truss-mcp` to your shell PATH):
+Not published to npm yet. After publish: `npm install -g @truss-security/truss-agent-mcp`.
 
-```bash
-npm run truss:init
-npm run truss:doctor
+From source without global install: `npm run truss:init`, `npm run truss:search`.
+
+## Two ways to use truss-mcp
+
+**MCP host** (Cursor, Claude Desktop) — `truss-mcp mcp`  
+Host LLM calls Truss tools. Only `TRUSS_API_KEY` needed.
+
+**Terminal REPL** — `truss-mcp search` or `truss-mcp ask`  
+Built-in LLM (Anthropic or OpenAI). See [truss-cli.md](./truss-cli.md).
+
+## MCP host setup
+
+| Client | Guide |
+|--------|-------|
+| Cursor | [client-setup-cursor.md](./client-setup-cursor.md) |
+| Claude Desktop | [client-setup-claude-desktop.md](./client-setup-claude-desktop.md) |
+
+Example config ([config/cursor.mcp.json](../config/cursor.mcp.json)):
+
+```json
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "command": "truss-mcp",
+      "args": ["mcp"],
+      "env": { "TRUSS_API_KEY": "YOUR_KEY" }
+    }
+  }
+}
 ```
 
-Or install globally from the repo: `npm install -g .` then use `truss-mcp` as above.
+## First query
 
-Edit `.env` — set `TRUSS_API_KEY` (and `ANTHROPIC_API_KEY` for the terminal CLI).
+**In an MCP host:**
 
-Env files are loaded from `~/.config/truss/env`, `~/.truss/.env`, then `./.env` (shell variables always win).
+> Search Truss for ransomware in healthcare from the last 7 days.
 
-## Commands (single binary)
-
-| Command | Purpose |
-|---------|---------|
-| `truss-mcp mcp` | stdio MCP server for Cursor, Claude Desktop, etc. |
-| `truss-mcp search` / `ask` | Terminal REPL with Claude |
-| `truss-mcp init` / `doctor` | Setup and validation |
-
-CLI guide: [truss-cli.md](./truss-cli.md)
-
-## Configure your MCP host
-
-- [Cursor](./client-setup-cursor.md)
-- [Claude Desktop](./client-setup-claude-desktop.md)
-
-## Try a query
-
-In an MCP host, ask:
-
-> Search Truss for ransomware affecting healthcare in the last 30 days.
-
-From the terminal CLI:
+**In the terminal:**
 
 ```bash
 truss-mcp search
 ```
 
+```
+truss search> Find ransomware reports affecting healthcare
+```
+
 ## Next steps
 
-- [FilterQL cookbook](./filterql-cookbook.md)
-- [truss-agent vs MCP](./truss-agent-vs-mcp.md)
-- [MCP acceptance checklist](./mcp-acceptance.md)
-- [Documentation index](../docs/README.md)
-- [Truss API roadmap](../docs/06-api-roadmap.md) — planned quota, contributor POST, smart search, and product GET (not yet shipped)
+- [truss-cli.md](./truss-cli.md) — REPL modes, `run`, date windows
+- [filterql-cookbook.md](./filterql-cookbook.md) — FilterQL examples
+- [mcp-acceptance.md](./mcp-acceptance.md) — verify all seven tools
+- [docs/README.md](../docs/README.md) — API and tool reference

@@ -1,74 +1,92 @@
-# truss-mcp CLI — terminal REPL
+# Terminal REPL (`truss-mcp search` / `ask`)
 
-The `truss-mcp` binary provides interactive terminal access with two distinct REPL modes.
+Interactive assistant with two modes. One binary, switch modes without exiting.
 
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `truss-mcp init` | Interactive setup — API keys, LLM provider, model |
-| `truss-mcp doctor` | Validate keys and API access |
-| `truss-mcp search` | **Live Truss queries** — MCP tools connected |
-| `truss-mcp ask` | **General Q&A** — LLM only, no Truss API access |
-| `truss-mcp mcp` | stdio MCP server for Cursor / Claude Desktop |
-| `truss-mcp help` | Show usage |
+| `truss-mcp init` | API keys, LLM provider, model |
+| `truss-mcp doctor` | Validate configuration |
+| `truss-mcp search` | Live Truss queries (MCP tools on) |
+| `truss-mcp ask` | FilterQL coaching (no Truss API) |
+| `truss-mcp mcp` | stdio server for MCP hosts |
+| `truss-mcp help` | Usage |
 
-## Truss-first
-
-Responses prioritize **Truss FilterQL** and Truss product fields. Operators: `=`, `!=`, `LIKE` on attributes `category`, `region`, `industry`, `source`, `author`, `tags`, `reference`, `indicators`, `title`, `type`, `validators`. External search is mentioned only after the Truss approach.
+**Prerequisites:** `TRUSS_API_KEY` for search; LLM key per `LLM_PROVIDER` for search and ask.
 
 ## search vs ask
 
-| | **search** | **ask** |
-|--|------------|---------|
-| Truss MCP subprocess | Started — 7 tools | **Not started** |
-| Can search products | Yes | **No** — type `:search` to run your filter |
-| Use when | Execute FilterQL on live Truss data | Build/explain Truss filters before searching |
+| | search | ask |
+|--|--------|-----|
+| MCP tools | 7 Truss tools | None |
+| Queries products | Yes | No — use `run` after confirming a filter |
+| Use when | Live retrieval, STIX, IOC follow-ups | Build filters, explain syntax, alias research |
 
-`ask` cannot query Truss products. It outputs Truss FilterQL you can run in `:search`.
+Both modes are Truss-first: FilterQL on `tags`, `category`, `source`, and nine other attributes. External/OSINT only after the Truss path.
 
-## Switching modes in the REPL
-
-Start with either command; switch without exiting:
+## Typical workflow
 
 ```
-truss ask> Explain FilterQL AND operators
-truss ask> :search
-truss search> Search Truss for ransomware in the last 14 days
+truss search> Make a filter for Sandworm
+# → prompts :ask; your question carries over
+
 truss search> :ask
-truss ask> exit
+truss ask> 2                    # confirm comprehensive aliases
+truss ask> run                  # live search, default 7 days
+
+truss search> Don't query again — dedupe the IOCs from your last reply
+# → uses conversation context only, no API call
 ```
 
-| REPL command | Action |
-|--------------|--------|
-| `:search` | Connect MCP tools — enable live Truss queries |
-| `:ask` | Disconnect MCP tools — general assistant only |
-| `exit` / `quit` / `:q` | Leave the REPL |
+## REPL commands
 
-Each mode keeps its own conversation history when you switch back.
+| Input | Action |
+|-------|--------|
+| `:search` | Enable MCP tools |
+| `:ask` | Coaching mode; disconnect MCP tools |
+| `run` | Execute confirmed filter (default 7 days) |
+| `run 30` | Execute with 30-day window |
+| `run start:2026-06-01 end:2026-06-08` | Execute with explicit range |
+| `days` | Show current date window |
+| `days 30` | Set rolling window (does not run search) |
+| `filter` | Show draft / confirmed filter and window |
+| `confirm` | Lock draft filter for `run` |
+| `help` | Command list |
+| `clear` | Reset conversation and filters (current mode) |
+| `status` | Mode, model, pending state |
+| `exit` / `quit` / `:q` | Leave REPL |
 
-## Prerequisites
+**Force prefixes:** `search: …` or `!…` bypass ask handoff; `ask: …` forces ask routing.
 
-- Node.js 18+
-- `TRUSS_API_KEY` — required for **search** mode (and `truss-mcp mcp`)
-- LLM API key — `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` per `LLM_PROVIDER`
+Each mode keeps its own conversation history.
 
-## Quick start
+## Filters and date windows
 
-```bash
-npm install -g .
-truss-mcp init
-truss-mcp doctor
-truss-mcp search
-```
+1. In **ask**, the assistant drafts FilterQL and asks you to confirm (often options 1/2).
+2. Type **`confirm`** or reply with your choice → filter is locked.
+3. Type **`run`** → switches to search and executes.
 
-From source: `npm run truss:search`, `npm run truss:ask`
+- **Default window:** last 7 days
+- **Custom:** `days 30` then `run`, or `run 30`, or mention "last 30 days" when confirming
+- **Quota:** windows wider than 7 days may use more Truss API quota
+
+FilterQL examples: [filterql-cookbook.md](./filterql-cookbook.md)
+
+## Follow-ups without re-querying
+
+In **search**, ask to extract, dedupe, group, or reformat IOCs from prior results. If you say **do not query Truss again**, the assistant uses thread context only — no MCP tool calls.
+
+For a **new** search that needs full IOC values, the model should use `include_indicators: true` on `search_products`.
 
 ## Environment
 
-See [env.example](../env.example). Key variables: `LLM_PROVIDER`, `LLM_MODEL`, provider API keys.
+See [env.example](../env.example). Set via `truss-mcp init` or edit `.env`.
 
-## Related
+Load order: `~/.config/truss/env` → `~/.truss/.env` → `./.env` (shell overrides).
+
+## See also
 
 - [getting-started.md](./getting-started.md) — MCP host setup
-- [mcp-acceptance.md](./mcp-acceptance.md) — verify MCP tools in a host
+- [filterql-cookbook.md](./filterql-cookbook.md) — intent → FilterQL
+- [mcp-acceptance.md](./mcp-acceptance.md) — verify tools in a host

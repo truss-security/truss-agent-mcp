@@ -1,60 +1,48 @@
 # MCP acceptance checklist
 
-Use this checklist to verify truss-agent-mcp end-to-end after install or release.
+Verify truss-mcp after install or release.
 
 ## Prerequisites
 
 - Node.js 18+
-- Valid `TRUSS_API_KEY` with product search access
-- MCP host configured per [client-setup-cursor.md](./client-setup-cursor.md) or [client-setup-claude-desktop.md](./client-setup-claude-desktop.md)
+- Valid `TRUSS_API_KEY`
+- Host configured per [client-setup-cursor.md](./client-setup-cursor.md) or [client-setup-claude-desktop.md](./client-setup-claude-desktop.md)
 
-## Server startup
-
-From source:
+## Startup
 
 ```bash
-npm install
 npm run build
 TRUSS_API_KEY=your_key npm start
 ```
 
-The process should start without errors and wait on stdio (no immediate exit).
+Process waits on stdio (no immediate exit).
 
-## Tool verification in MCP host
+## Tool prompts
 
-Run these prompts in Cursor or Claude Desktop and confirm the expected tool is invoked:
+| Ask the host | Expected tool |
+|--------------|---------------|
+| List Truss FilterQL attributes | `list_filter_attributes` |
+| Validate: `category = "Malware"` | `validate_filter_expression` |
+| Search malware last 7 days | `search_products` with `days: 7` |
+| Next page of that search | `search_products_page` |
+| Multiple pages of ransomware | `iterate_products_summary` |
+| Export matches as STIX | `search_products_stix` |
+| STIX for product id 12345 | `get_product_stix` |
 
-| Prompt | Expected tool |
-|--------|---------------|
-| "List Truss FilterQL attributes" | `list_filter_attributes` |
-| "Validate this filter: category = Malware" | `validate_filter_expression` |
-| "Search Truss for malware from the last 7 days" | `search_products` with `days: 7` |
-| "Get the next page of that search" | `search_products_page` |
-| "Summarize multiple pages of ransomware reports" | `iterate_products_summary` |
-| "Export matching products as STIX" | `search_products_stix` |
-| "Get STIX bundle for Truss product id 12345" | `get_product_stix` |
+## Pass criteria
 
-## Success criteria
-
-- All seven tools appear in the host's MCP tool list
-- Search tools return `{ products, total, page, limit, hasMore }` with trimmed summaries (no raw IOCs unless requested)
-- STIX tools return valid STIX 2.x bundle JSON
-- Invalid FilterQL returns a clear validation error
-- Missing or invalid API key fails at server startup with a clear message
-
-## Security acceptance
-
-Automated security tests for prompt injection, data leakage, supply chain, and MCP tool boundaries live in the **[truss-testing](https://github.com/truss-security/truss-testing)** repo under `mcpAgentTesting/`.
-
-```bash
-cd ../truss-agent-mcp && npm ci && npm run build
-cd ../truss-testing && npm install && npm run test:mcp-agent-security
-```
-
-See [mcpAgentTesting/README.md](https://github.com/truss-security/truss-testing/blob/main/mcpAgentTesting/README.md) for red-team (`@redteam`) runs and the pass/fail rubric.
+- All seven tools listed in the host
+- Search returns `{ products, total, page, limit, hasMore }`
+- IOCs only when `include_indicators: true`
+- Invalid FilterQL → clear validation error
+- Bad/missing API key → clear startup error
 
 ## Troubleshooting
 
-- **429 rate limit:** Reduce `limit`, narrow filters, or increase `TRUSS_MCP_DEBOUNCE_MS`
-- **403 forbidden:** Key may lack search access; verify key tier in Truss dashboard
-- **Server exits immediately:** Check `TRUSS_API_KEY` is set in the MCP host `env` block, not in tool arguments
+| Issue | Fix |
+|-------|-----|
+| 429 rate limit | Narrow filter, lower `limit`, raise `TRUSS_MCP_DEBOUNCE_MS` |
+| 403 | Verify key tier in Truss dashboard |
+| Server exits | Set `TRUSS_API_KEY` in host `env`, not tool args |
+
+Security red-team tests: [truss-testing/mcpAgentTesting](https://github.com/truss-security/truss-testing/tree/main/mcpAgentTesting)

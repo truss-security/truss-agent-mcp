@@ -9,7 +9,7 @@
 | Surface | Repo | Trigger | Primary output |
 |---------|------|---------|----------------|
 | **truss-agent** | truss-agent | Cron / interval | Webhooks (Discord, Slack, Teams) |
-| **truss-agent-mcp** | truss-agent-mcp (this repo) | LLM tool calls | JSON / STIX in the chat session |
+| **truss-mcp** | truss-agent-mcp (this repo) | MCP host or `truss-mcp search` REPL | JSON / STIX in chat or terminal |
 | **CTI Parser MCP** | truss-ai-parsingbot | `extract_cti(url)` | Structured CTI from a URL (ingestion, not DB search) |
 
 ## Design choice: public API tier only
