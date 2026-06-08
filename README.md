@@ -36,19 +36,25 @@ Requires Node.js 18+. Single binary: **`truss-mcp`** (avoids conflict with `@tru
 |---------|---------|
 | `truss-mcp mcp` | stdio MCP server (Cursor, Claude Desktop, VS Code) |
 | `truss-mcp search` | REPL with **live Truss MCP tools** — product search, STIX, FilterQL |
-| `truss-mcp ask` | REPL **without Truss tools** — FilterQL help, CTI concepts, query coaching |
+| `truss-mcp ask` | REPL **without Truss tools** — Truss-first FilterQL coaching (`=`, `!=`, `LIKE`) |
 | `truss-mcp init` | Create `.env` from template |
 | `truss-mcp doctor` | Validate keys and API access |
 | `truss-mcp version` | Print version |
 | `truss-mcp help` | Show usage |
+
+### Truss-first
+
+Both modes lead with **Truss product search** — FilterQL on Truss attributes (`tags`, `category`, `source`, …) using `=`, `!=`, and `LIKE`. External/OSINT is suggested only after the Truss path or when you ask for it.
 
 ### `search` vs `ask`
 
 | | **search** | **ask** |
 |--|------------|---------|
 | Truss MCP tools | Yes (7 tools) | **No** — LLM only |
-| Can query products | Yes | **No** — directs you to `:search` |
-| Best for | Live threat-intel retrieval | Explaining FilterQL, refining questions |
+| Can query products | Yes | **No** — use `run` or `:search` |
+| Best for | Run FilterQL against live Truss data | Build and explain Truss FilterQL before searching |
+
+In **search** mode, coaching questions (build a filter, explain syntax, alias research) prompt you to type **`:ask`** — your question carries over. In **ask** mode, after you confirm a filter, type **`run`** or **`:search`** to execute it.
 
 **Switch modes inside either REPL** without exiting:
 
@@ -57,7 +63,9 @@ truss ask> :search          # enable Truss tools
 truss search> :ask           # disable Truss tools
 ```
 
-REPL commands: `:search`, `:ask`, `exit` (also `quit`, `:q`)
+After you confirm a FilterQL in **ask** mode, type **`run`** to switch to search and execute it automatically (or `:search` to switch manually).
+
+REPL commands: `:search`, `:ask`, `run`, `exit` (also `quit`, `:q`)
 
 ## First-time setup
 

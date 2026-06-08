@@ -8,6 +8,11 @@ describe('parseReplInput', () => {
     assert.deepEqual(parseReplInput(':ask'), { type: 'switch', mode: 'ask' });
   });
 
+  it('parses run command', () => {
+    assert.deepEqual(parseReplInput('run'), { type: 'run' });
+    assert.deepEqual(parseReplInput(':run'), { type: 'run' });
+  });
+
   it('parses exit commands', () => {
     assert.deepEqual(parseReplInput('exit'), { type: 'exit' });
     assert.deepEqual(parseReplInput('quit'), { type: 'exit' });

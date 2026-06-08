@@ -13,15 +13,19 @@ The `truss-mcp` binary provides interactive terminal access with two distinct RE
 | `truss-mcp mcp` | stdio MCP server for Cursor / Claude Desktop |
 | `truss-mcp help` | Show usage |
 
+## Truss-first
+
+Responses prioritize **Truss FilterQL** and Truss product fields. Operators: `=`, `!=`, `LIKE` on attributes `category`, `region`, `industry`, `source`, `author`, `tags`, `reference`, `indicators`, `title`, `type`, `validators`. External search is mentioned only after the Truss approach.
+
 ## search vs ask
 
 | | **search** | **ask** |
 |--|------------|---------|
 | Truss MCP subprocess | Started — 7 tools | **Not started** |
-| Can search products | Yes | **No** |
-| Use when | "Find ransomware from last 7 days" | "What is FilterQL?" / "How do I filter by feed?" |
+| Can search products | Yes | **No** — type `:search` to run your filter |
+| Use when | Execute FilterQL on live Truss data | Build/explain Truss filters before searching |
 
-`ask` cannot query Truss products. If you ask for live data in `ask` mode, the assistant will tell you to type `:search`.
+`ask` cannot query Truss products. It outputs Truss FilterQL you can run in `:search`.
 
 ## Switching modes in the REPL
 
