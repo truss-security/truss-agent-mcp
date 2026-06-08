@@ -2,9 +2,7 @@ import { copyFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isEnvValueEmpty, readEnvFile, updateEnvFile } from '../lib/env-file.js';
-import { maskSecret } from '../lib/mask-secret.js';
-import { isFullyConfigured, needsLlmSetup, promptLlmSetup } from './init-llm.js';
-import { getProvider } from './providers/catalog.js';
+import { isFullyConfigured, promptLlmSetup } from './init-llm.js';
 import { isInteractive, promptSecret } from './prompt-line.js';
 
 function findPackageRoot(startDir: string): string {
@@ -45,33 +43,26 @@ export async function runInit(
 
   let values = readEnvFile(envPath);
 
-  if (isFullyConfigured(values)) {
-    const providerId = values.get('LLM_PROVIDER')?.trim() || 'anthropic';
-    const provider = getProvider(providerId as 'anthropic' | 'openai');
-    console.log('\nAlready configured:');
-    console.log(`  ✓ TRUSS_API_KEY (${maskSecret(values.get('TRUSS_API_KEY')!)})`);
-    console.log(`  ✓ ${provider?.apiKeyEnv} (${maskSecret(values.get(provider?.apiKeyEnv ?? 'ANTHROPIC_API_KEY')!)})`);
-    console.log(`  ✓ LLM: ${provider?.label ?? providerId} / ${values.get('LLM_MODEL')}`);
-    console.log('\nRun: truss-mcp doctor\n');
-    return 0;
-  }
-
   if (!interactive) {
+    if (isFullyConfigured(values)) {
+      console.log('\nConfiguration complete. Run: truss-mcp doctor\n');
+      return 0;
+    }
     console.log('\nSet these in .env (non-interactive shell):');
     if (isEnvValueEmpty(values.get('TRUSS_API_KEY'))) {
       console.log('  TRUSS_API_KEY  — From the Truss dashboard');
     }
-    if (needsLlmSetup(values)) {
-      console.log('  LLM_PROVIDER, LLM_MODEL, and provider API key (ANTHROPIC_API_KEY or OPENAI_API_KEY)');
-    }
+    console.log('  LLM_PROVIDER, LLM_MODEL, and provider API key (ANTHROPIC_API_KEY or OPENAI_API_KEY)');
     console.log('\nThen run: truss-mcp doctor\n');
     return 0;
   }
 
+  console.log('\nTruss MCP setup — configure API keys and LLM preferences.\n');
+
   const updates: Record<string, string> = {};
 
   if (isEnvValueEmpty(values.get('TRUSS_API_KEY'))) {
-    console.log('\nTruss API key');
+    console.log('Truss API key');
     console.log('  From the Truss dashboard (Billing / API settings)');
     const trussKey = await promptSecret('Truss API key');
     if (trussKey) {
@@ -80,9 +71,8 @@ export async function runInit(
     }
   }
 
-  const llmUpdates = await promptLlmSetup(values);
+  const llmUpdates = await promptLlmSetup(values, { alwaysPrompt: true });
   Object.assign(updates, llmUpdates);
-  values = readEnvFile(envPath);
   for (const [key, value] of Object.entries(updates)) {
     values.set(key, value);
   }

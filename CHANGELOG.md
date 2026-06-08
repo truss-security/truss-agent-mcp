@@ -11,7 +11,7 @@
   - Priced model catalog in `truss-mcp init`, sorted cheapest-first (input $/1M tokens)
   - Anthropic: Claude Haiku 4.5, Sonnet 4.6, Opus 4.6
   - OpenAI: GPT-4o mini, o4-mini, GPT-4o, o3
-- **Interactive `truss-mcp init`** — wizard prompts for Truss API key, LLM provider, model, and provider API key (hidden input)
+- **Interactive `truss-mcp init`** — wizard always prompts for LLM provider and model (priced list); prompts for API keys when missing (hidden input)
 - **`truss-mcp doctor`** — validates keys, MCP server binary, Truss API, and LLM API reachability
 - **Doctor `.env` inspection** — reports whether keys have real values in `.env` with masked previews (e.g. `sk-…5gAA (108 chars)`); never prints full secrets
 - User env file support: `~/.config/truss/env`, `~/.truss/.env`, then `./.env` (shell env always wins)
@@ -24,6 +24,8 @@
 
 ### Changed
 
+- **`search` vs `ask` are now functionally distinct**: `search` connects Truss MCP tools; `ask` is LLM-only and cannot query products
+- **REPL mode switching** — `:search` and `:ask` switch modes without exiting (MCP subprocess started/stopped accordingly)
 - **Single binary only** — removed `truss-agent-mcp` npm bin; MCP hosts use `truss-mcp mcp` (or `npx -y @truss-security/truss-agent-mcp mcp`)
 - CLI binary renamed from `truss` to `truss-mcp` to avoid conflict with `@truss-security/truss-sdk`'s `truss` bin
 - MCP server protocol name and SDK `userAgent` updated to `truss-mcp/<version>`

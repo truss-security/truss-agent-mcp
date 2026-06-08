@@ -35,12 +35,29 @@ Requires Node.js 18+. Single binary: **`truss-mcp`** (avoids conflict with `@tru
 | Command | Purpose |
 |---------|---------|
 | `truss-mcp mcp` | stdio MCP server (Cursor, Claude Desktop, VS Code) |
-| `truss-mcp search` | Threat-intel REPL with Claude |
-| `truss-mcp ask` | General assistant REPL with Claude |
+| `truss-mcp search` | REPL with **live Truss MCP tools** — product search, STIX, FilterQL |
+| `truss-mcp ask` | REPL **without Truss tools** — FilterQL help, CTI concepts, query coaching |
 | `truss-mcp init` | Create `.env` from template |
 | `truss-mcp doctor` | Validate keys and API access |
 | `truss-mcp version` | Print version |
 | `truss-mcp help` | Show usage |
+
+### `search` vs `ask`
+
+| | **search** | **ask** |
+|--|------------|---------|
+| Truss MCP tools | Yes (7 tools) | **No** — LLM only |
+| Can query products | Yes | **No** — directs you to `:search` |
+| Best for | Live threat-intel retrieval | Explaining FilterQL, refining questions |
+
+**Switch modes inside either REPL** without exiting:
+
+```
+truss ask> :search          # enable Truss tools
+truss search> :ask           # disable Truss tools
+```
+
+REPL commands: `:search`, `:ask`, `exit` (also `quit`, `:q`)
 
 ## First-time setup
 
@@ -70,25 +87,30 @@ Env files are loaded from (shell variables always win):
 
 ## Examples
 
-### `truss-mcp search`
+### `truss-mcp search` — live Truss queries
 
 ```bash
 truss-mcp search
 ```
 
 ```
-Truss Search — threat intelligence retrieval
-Model: claude-sonnet-4-6 | Tools: 7
+Truss Search — live Truss threat intelligence (MCP tools enabled)
+LLM: Anthropic (Claude) | Model: claude-sonnet-4-6 | Tools: 7 Truss MCP tools
 
 truss search> Search for malware reports from the last 7 days
+truss search> :ask
+truss ask> What FilterQL fields did you use?
+truss ask> :search
 truss search> exit
 ```
 
-### `truss-mcp ask`
+### `truss-mcp ask` — no live Truss queries
 
 ```bash
 truss-mcp ask
 ```
+
+Explains FilterQL and CTI concepts. Cannot search Truss — type `:search` when you need live data.
 
 ### MCP host — Cursor or Claude Desktop
 

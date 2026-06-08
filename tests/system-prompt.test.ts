@@ -12,12 +12,14 @@ describe('system prompts', () => {
     assert.ok(SEARCH_SYSTEM_PROMPT.includes(SERVER_INSTRUCTIONS));
     assert.match(SEARCH_SYSTEM_PROMPT, /validate_filter_expression/i);
     assert.match(SEARCH_SYSTEM_PROMPT, /search_products/i);
+    assert.match(SEARCH_SYSTEM_PROMPT, /:ask/);
   });
 
-  it('ASK_SYSTEM_PROMPT includes SERVER_INSTRUCTIONS and general assistant guidance', () => {
-    assert.ok(ASK_SYSTEM_PROMPT.includes(SERVER_INSTRUCTIONS));
-    assert.match(ASK_SYSTEM_PROMPT, /general terminal assistant/i);
-    assert.match(ASK_SYSTEM_PROMPT, /Do not run speculative searches/i);
+  it('ASK_SYSTEM_PROMPT forbids live Truss queries and points to :search', () => {
+    assert.doesNotMatch(ASK_SYSTEM_PROMPT, /search_products/);
+    assert.ok(!ASK_SYSTEM_PROMPT.includes(SERVER_INSTRUCTIONS));
+    assert.match(ASK_SYSTEM_PROMPT, /do NOT have access to Truss MCP tools/i);
+    assert.match(ASK_SYSTEM_PROMPT, /:search/);
   });
 
   it('getSystemPrompt returns mode-specific prompts', () => {
