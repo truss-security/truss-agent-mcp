@@ -14,7 +14,7 @@ const skipReason =
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const serverPath = join(packageRoot, 'dist', 'truss-cli.js');
 
-describe('ask integration (optional)', () => {
+describe('search integration (optional)', () => {
   it('runs a single turn against Claude and Truss MCP', async (t) => {
     if (!runLive) {
       t.skip(skipReason);
@@ -34,11 +34,10 @@ describe('ask integration (optional)', () => {
     try {
       const result = await runTurn(
         config,
-        'search',
         session,
         undefined,
         'List the Truss FilterQL attributes. Reply briefly.',
-        getSystemPrompt('search')
+        getSystemPrompt()
       );
       const text = result.displayText;
       assert.ok(text.length > 0);

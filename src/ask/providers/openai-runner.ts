@@ -6,6 +6,13 @@ import type {
 import type { FunctionParameters } from 'openai/resources/shared';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { McpSession } from '../mcp-session.js';
+import {
+  buildTurnDiagnostics,
+  toolResultText,
+  traceToolCall,
+  type ToolTraceCallbacks,
+  type ToolTraceEvent,
+} from '../tool-trace.js';
 import type { ResolvedLlm } from './resolve.js';
 
 export interface OpenAiTurnState {
@@ -29,29 +36,21 @@ function mcpToolsToOpenAi(tools: Tool[]): ChatCompletionTool[] {
   }));
 }
 
-function toolResultText(result: Record<string, unknown>): string {
-  if (Array.isArray(result.content)) {
-    const parts = result.content
-      .filter((block) => typeof block === 'object' && block !== null && 'text' in block)
-      .map((block) => String((block as { text?: string }).text ?? ''));
-    if (parts.length > 0) return parts.join('\n');
-  }
-  return JSON.stringify(result);
-}
-
 export async function runOpenAiTurn(
   llm: ResolvedLlm,
   session: McpSession | null,
   state: OpenAiTurnState | undefined,
   userInput: string,
-  systemPrompt: string
-): Promise<{ state: OpenAiTurnState; displayText: string }> {
+  systemPrompt: string,
+  callbacks?: ToolTraceCallbacks
+): Promise<{ state: OpenAiTurnState; displayText: string; toolEvents: ToolTraceEvent[] }> {
   const openai = new OpenAI({ apiKey: llm.apiKey });
   const messages: ChatCompletionMessageParam[] = [
     { role: 'system', content: systemPrompt },
     ...(state?.messages ?? []),
     { role: 'user', content: userInput },
   ];
+  const toolEvents: ToolTraceEvent[] = [];
 
   if (!session) {
     const response = await openai.chat.completions.create({
@@ -67,6 +66,7 @@ export async function runOpenAiTurn(
     return {
       state: { provider: 'openai', messages: messages.slice(1) },
       displayText: choice.message.content?.trim() ?? '',
+      toolEvents,
     };
   }
 
@@ -95,14 +95,21 @@ export async function runOpenAiTurn(
         const args = toolCall.function.arguments
           ? (JSON.parse(toolCall.function.arguments) as Record<string, unknown>)
           : {};
-        const result = await session.client.callTool({
-          name: toolCall.function.name,
-          arguments: args,
-        });
+        const { result, event } = await traceToolCall(
+          toolCall.function.name,
+          args,
+          () =>
+            session.client.callTool({
+              name: toolCall.function.name,
+              arguments: args,
+            }) as Promise<Record<string, unknown>>,
+          callbacks
+        );
+        toolEvents.push(event);
         messages.push({
           role: 'tool',
           tool_call_id: toolCall.id,
-          content: toolResultText(result as Record<string, unknown>),
+          content: toolResultText(result),
         });
       }
       continue;
@@ -112,6 +119,7 @@ export async function runOpenAiTurn(
     return {
       state: { provider: 'openai', messages: messages.slice(1) },
       displayText,
+      toolEvents,
     };
   }
 

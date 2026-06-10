@@ -20,7 +20,7 @@ From source without global install: `npm run truss:init`, `npm run truss:search`
 **MCP host** (Cursor, Claude Desktop) — `truss-mcp mcp`  
 Host LLM calls Truss tools. Only `TRUSS_API_KEY` needed.
 
-**Terminal REPL** — `truss-mcp search` or `truss-mcp ask`  
+**Terminal REPL** — `truss-mcp search`  
 Built-in LLM (Anthropic or OpenAI). See [truss-cli.md](./truss-cli.md).
 
 ## MCP host setup

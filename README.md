@@ -23,27 +23,39 @@ Node.js 18+. Binary name **`truss-mcp`** avoids conflict with `@truss-security/t
 
 | Command | What it does |
 |---------|----------------|
-| `truss-mcp search` | REPL with live Truss MCP tools |
-| `truss-mcp ask` | REPL for FilterQL coaching (no live queries) |
+| `truss-mcp search` | Guided REPL with live Truss MCP tools (FilterQL, STIX, detection rules) |
 | `truss-mcp mcp` | stdio MCP server for Cursor, Claude Desktop, VS Code |
 | `truss-mcp init` | Interactive `.env` setup |
 | `truss-mcp doctor` | Validate keys and API access |
 | `truss-mcp help` | Usage summary |
 
-## search vs ask
+## Guided search workflow
 
-| | search | ask |
-|--|--------|-----|
-| Truss API | Yes (7 MCP tools) | No |
-| Best for | Run filters, STIX, IOC follow-ups | Build and confirm FilterQL first |
+One REPL with MCP tools always connected. The assistant classifies your intent and asks before querying Truss API:
 
-**Typical flow:** coach a filter in **ask** → type **`run`** to execute (default **7 days**) → stay in **search** for follow-ups on results.
+1. **Knowledge** — Truss platform, cyber security context, threat background
+2. **Build filter** — draft FilterQL, validate, confirm
+3. **Query** — `run` executes confirmed filter (default **7 days**)
+4. **Format** — `stix` for STIX export; JSON summaries in-thread
+5. **Detection rules** — `detect splunk`, `detect falcon`, `detect cortex` from search results
 
-- Coaching questions in search → prompts **`:ask`** (question carries over)
-- After confirming a filter in ask → **`run`** or **`:search`**
+The assistant offers next steps explicitly: build a filter, refine it, query Truss API, export JSON/STIX, or generate SIEM/EDR hunting queries.
+
 - Wider windows (`run 30`, `days 30`) may use more API quota
+- Context-only follow-ups (IOC dedupe, reformat) use thread history without re-querying
 
 Full REPL reference: **[guides/truss-cli.md](guides/truss-cli.md)**
+
+## Terminal display (REPL)
+
+`truss-mcp search` uses color-coded, ASCII-bordered output:
+
+- **You** — your message
+- **MCP** — live tool trace (`→ search_products`, `✓ 12 matches`)
+- **Results** — structured product table before the assistant summary
+- **Truss** — assistant reply (cyan), guided offers (yellow), FilterQL blocks (magenta)
+
+Controls: `color` / `color on` / `color off` / `color auto` · env `TRUSS_MCP_COLOR` · standard `NO_COLOR=1`
 
 ## MCP host (Cursor / Claude)
 
@@ -70,9 +82,9 @@ Env load order (shell vars win): `~/.config/truss/env` → `~/.truss/.env` → `
 | Variable | Required for | Notes |
 |----------|--------------|-------|
 | `TRUSS_API_KEY` | search, mcp | From Truss dashboard |
-| `LLM_PROVIDER` | search, ask | `anthropic` or `openai` — set via `init` |
-| `LLM_MODEL` | search, ask | Set via `init` |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | search, ask | Per provider |
+| `LLM_PROVIDER` | search | `anthropic` or `openai` — set via `init` |
+| `LLM_MODEL` | search | Set via `init` |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | search | Per provider |
 
 Full list: [env.example](env.example)
 

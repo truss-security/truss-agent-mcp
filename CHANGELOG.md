@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Unified search REPL** — single guided workflow with MCP tools always connected
+- **Intent classification** — knowledge, filter build/refine, query, format (JSON/STIX), detection rules, context-only
+- **Guided offer prompts** — assistant asks before building filters, querying API, exporting STIX, or generating detection rules
+- **Detection rule generation** — prompt-driven Splunk, Falcon, Cortex, Sentinel, and Sigma queries from search results
+- **REPL commands** — `stix`, `detect <platform>` for STIX export and SIEM/EDR hunting queries
+- **`workflow-state.ts`** and **`classify-workflow-intent.ts`** — session state and hybrid intent routing
+- **Color-coded REPL output** — semantic terminal colors via `picocolors` (`terminal-theme.ts`, `repl-output.ts`)
+- **Live MCP tool trace** — per-tool blocks with timing and result summaries (`tool-trace.ts`)
+- **Structured search results table** — ASCII table before assistant summary (`format-search-results.ts`)
+- **REPL command** — `color` / `color on` / `color off` / `color auto`; env `TRUSS_MCP_COLOR`
+
+### Changed
+
+- **Removed `truss-mcp ask`** and `:ask` / `:search` REPL mode switching — use `truss-mcp search` only
+- **Merged ask coaching into search** — FilterQL building, validation, and knowledge answers in one mode
+- **Updated MCP host instructions** — same guided workflow for Cursor / Claude Desktop hosts
+- **Single conversation history** — no per-mode state split
+
+### Removed
+
+- `truss-mcp ask` CLI command and `truss:ask` npm script
+- `:search` and `:ask` REPL commands; `search:` and `ask:` force prefixes
+
 ## 1.1.0
 
 ### Added

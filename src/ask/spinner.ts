@@ -1,19 +1,39 @@
-export async function withSpinner<T>(label: string, fn: () => Promise<T>): Promise<T> {
-  if (!process.stdout.isTTY) {
-    return fn();
+import { stdout } from 'node:process';
+
+export interface SpinnerHandle {
+  setLabel: (label: string) => void;
+}
+
+export async function withSpinner<T>(
+  label: string,
+  fn: (handle: SpinnerHandle) => Promise<T>
+): Promise<T> {
+  if (!stdout.isTTY) {
+    return fn({ setLabel: () => {} });
   }
 
   const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  let currentLabel = label;
   let i = 0;
-  const timer = setInterval(() => {
-    process.stdout.write(`\r${frames[i % frames.length]} ${label}`);
+
+  const render = (): void => {
+    stdout.write(`\r${frames[i % frames.length]} ${currentLabel}`);
     i += 1;
-  }, 80);
+  };
+
+  render();
+  const timer = setInterval(render, 80);
+
+  const handle: SpinnerHandle = {
+    setLabel: (next: string) => {
+      currentLabel = next;
+    },
+  };
 
   try {
-    return await fn();
+    return await fn(handle);
   } finally {
     clearInterval(timer);
-    process.stdout.write('\r\x1b[K');
+    stdout.write('\r\x1b[K');
   }
 }

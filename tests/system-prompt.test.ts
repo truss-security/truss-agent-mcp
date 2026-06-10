@@ -1,43 +1,39 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ASK_SYSTEM_PROMPT,
-  SEARCH_SYSTEM_PROMPT,
+  UNIFIED_SEARCH_PROMPT,
   getSystemPrompt,
 } from '../src/ask/system-prompt.ts';
 import {
   MCP_HOST_INSTRUCTIONS,
   REPL_SEARCH_INSTRUCTIONS,
+  GUIDED_WORKFLOW,
 } from '../src/instructions.ts';
 
 describe('system prompts', () => {
-  it('SEARCH_SYSTEM_PROMPT is Truss-first with FilterQL operators', () => {
-    assert.ok(SEARCH_SYSTEM_PROMPT.includes(REPL_SEARCH_INSTRUCTIONS));
-    assert.match(SEARCH_SYSTEM_PROMPT, /Truss-first/i);
-    assert.match(SEARCH_SYSTEM_PROMPT, /!=/);
-    assert.match(SEARCH_SYSTEM_PROMPT, /LIKE/i);
-    assert.match(SEARCH_SYSTEM_PROMPT, /validate_filter_expression/i);
-    assert.match(SEARCH_SYSTEM_PROMPT, /:ask/);
-    assert.match(SEARCH_SYSTEM_PROMPT, /run/);
-    assert.match(SEARCH_SYSTEM_PROMPT, /do not call MCP tools/i);
-    assert.match(SEARCH_SYSTEM_PROMPT, /context-only/i);
+  it('UNIFIED_SEARCH_PROMPT is Truss-first with guided workflow', () => {
+    assert.ok(UNIFIED_SEARCH_PROMPT.includes(REPL_SEARCH_INSTRUCTIONS));
+    assert.match(UNIFIED_SEARCH_PROMPT, /Truss-first/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /guided/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /!=/);
+    assert.match(UNIFIED_SEARCH_PROMPT, /LIKE/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /validate_filter_expression/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /run/);
+    assert.match(UNIFIED_SEARCH_PROMPT, /do not call MCP tools/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /context-only/i);
+    assert.doesNotMatch(UNIFIED_SEARCH_PROMPT, /:ask/);
   });
 
-  it('ASK_SYSTEM_PROMPT is Truss-first FilterQL coaching without live search', () => {
-    assert.match(ASK_SYSTEM_PROMPT, /Truss-first/i);
-    assert.match(ASK_SYSTEM_PROMPT, /do NOT have live Truss MCP tools/i);
-    assert.match(ASK_SYSTEM_PROMPT, /type run/i);
-    assert.match(ASK_SYSTEM_PROMPT, /tags = "Sandworm"/);
-    assert.match(ASK_SYSTEM_PROMPT, /!=/);
-    assert.match(ASK_SYSTEM_PROMPT, /LIKE/i);
-    assert.match(ASK_SYSTEM_PROMPT, /quota/i);
-    assert.match(ASK_SYSTEM_PROMPT, /external/i);
-    assert.doesNotMatch(ASK_SYSTEM_PROMPT, /search_products/);
+  it('REPL_SEARCH_INSTRUCTIONS includes guided workflow offers', () => {
+    assert.match(REPL_SEARCH_INSTRUCTIONS, /Would you like to build a Filter for this\?/);
+    assert.match(REPL_SEARCH_INSTRUCTIONS, /Would you like me to query Truss API for this data\?/);
+    assert.match(GUIDED_WORKFLOW, /detection_rules/);
   });
 
-  it('MCP_HOST_INSTRUCTIONS has no REPL run command', () => {
+  it('MCP_HOST_INSTRUCTIONS has guided workflow without REPL run command', () => {
     assert.doesNotMatch(MCP_HOST_INSTRUCTIONS, /type run to switch/i);
     assert.match(MCP_HOST_INSTRUCTIONS, /validate_filter_expression/i);
+    assert.match(MCP_HOST_INSTRUCTIONS, /Would you like to build a Filter for this\?/);
   });
 
   it('includes all Truss FilterQL attributes in field guide', () => {
@@ -54,12 +50,11 @@ describe('system prompts', () => {
       'type',
       'validators',
     ]) {
-      assert.match(SEARCH_SYSTEM_PROMPT, new RegExp(field));
+      assert.match(UNIFIED_SEARCH_PROMPT, new RegExp(field));
     }
   });
 
-  it('getSystemPrompt returns mode-specific prompts', () => {
-    assert.equal(getSystemPrompt('search'), SEARCH_SYSTEM_PROMPT);
-    assert.equal(getSystemPrompt('ask'), ASK_SYSTEM_PROMPT);
+  it('getSystemPrompt returns unified prompt', () => {
+    assert.equal(getSystemPrompt(), UNIFIED_SEARCH_PROMPT);
   });
 });
