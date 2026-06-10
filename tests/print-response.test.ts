@@ -1,19 +1,22 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { printAssistantResponse } from '../src/ask/print-response.ts';
+import { printAssistantBlock } from '../src/ask/repl-output.ts';
 
-describe('printAssistantResponse', () => {
-  it('prints non-empty text with surrounding newlines', () => {
+describe('printAssistantBlock', () => {
+  it('prints non-empty text with Truss block header', () => {
     let output = '';
     const original = console.log;
     console.log = (msg: string) => {
-      output = msg;
+      output += `${msg}\n`;
     };
     try {
-      printAssistantResponse('Hello');
-      assert.equal(output, '\nHello\n');
+      process.env.NO_COLOR = '1';
+      printAssistantBlock('Hello');
+      assert.match(output, /--- Truss/);
+      assert.match(output, /Hello/);
     } finally {
       console.log = original;
+      delete process.env.NO_COLOR;
     }
   });
 
@@ -24,7 +27,7 @@ describe('printAssistantResponse', () => {
       called = true;
     };
     try {
-      printAssistantResponse('');
+      printAssistantBlock('');
       assert.equal(called, false);
     } finally {
       console.log = original;

@@ -13,7 +13,6 @@ describe('truss CLI router', () => {
   it('parseCommand resolves all subcommands', async () => {
     const { parseCommandForTest } = await import('../src/truss-cli-router.ts');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'search']), 'search');
-    assert.equal(parseCommandForTest(['node', 'truss-mcp', 'ask']), 'ask');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'doctor']), 'doctor');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'init']), 'init');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'mcp']), 'mcp');
@@ -26,8 +25,9 @@ describe('truss CLI router', () => {
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'search', '--version']), 'version');
   });
 
-  it('parseCommand rejects unknown commands', async () => {
+  it('parseCommand rejects unknown commands including removed ask', async () => {
     const { parseCommandForTest } = await import('../src/truss-cli-router.ts');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'unknown']), null);
+    assert.equal(parseCommandForTest(['node', 'truss-mcp', 'ask']), null);
   });
 });

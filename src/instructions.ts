@@ -1,3 +1,5 @@
+import { DETECTION_RULE_GUIDE } from './lib/detection-rule-guide.js';
+
 export const DEFAULT_SEARCH_DAYS = 7;
 
 export const TRUSS_FIRST_POLICY = `Truss-first response policy:
@@ -5,7 +7,7 @@ export const TRUSS_FIRST_POLICY = `Truss-first response policy:
 2. Frame every query as a Truss product search: which fields, which operators (=, !=, LIKE), and what time range.
 3. Do not suggest open-web, Google, VirusTotal, Shodan, or other external/OSINT sources until you have covered the Truss approach — or the user explicitly asks for non-Truss/global search.
 4. When external sources are appropriate, state that clearly after the Truss path: e.g. "Outside Truss, you could also …"
-5. In search mode, call list_filter_attributes if you need to confirm allowed fields or operators.`;
+5. Call list_filter_attributes if you need to confirm allowed fields or operators.`;
 
 export const FILTERQL_OPERATORS = `Truss FilterQL operators (only these — no IN, CONTAINS, colon syntax, or regex):
 - =       Exact match — primary for category, source, tags, type, industry, region, author, validators
@@ -62,20 +64,20 @@ export const QUOTA_AWARENESS = `${QUOTA_AWARENESS_ASK}
 - Pagination (search_products_page) and iterate_products_summary multiply quota use — narrow filters first.`;
 
 export const REPL_COMMANDS = `Truss MCP REPL commands:
-- :search   Switch to search mode (live Truss MCP tools)
-- :ask      Switch to ask mode (FilterQL coaching — no live queries)
-- run       Switch to search and execute the last confirmed FilterQL (default ${DEFAULT_SEARCH_DAYS} days)
+- run       Execute the last confirmed FilterQL against Truss API (default ${DEFAULT_SEARCH_DAYS} days)
 - run 30    Execute with a 30-day window (may use more API quota than the default)
 - days 30   Set rolling window to 30 days without running (may use more API quota)
 - days      Show current date window
 - filter    Show draft and confirmed filters plus current window
 - confirm   Lock the draft filter for run
+- stix      Export results or confirmed filter as STIX
+- detect    Generate detection queries — e.g. detect splunk, detect falcon, detect cortex
 - help      Show REPL commands
-- clear     Reset conversation for current mode
-- status    Show mode, model, tools, and pending state
+- clear     Reset conversation and pending filters
+- status    Show model, tools, workflow state, and pending filters
 - exit      Leave the REPL (also: quit, :q)
 
-Primary execution path: type run after confirming a filter in ask mode. Use :search only to switch manually.`;
+Primary execution path: confirm a filter, then type run. Use stix or detect <platform> after query results.`;
 
 export const SEARCH_RESPONSE_FORMAT = `Search mode response format (plain terminal text — no markdown tables):
 Filter: <filterExpression>
@@ -88,7 +90,7 @@ Results: <total> matches
 Next: refine the filter, request STIX for an id, or paginate if hasMore is true.
 Keep summaries concise; list at most 15 products unless the user asks for more.`;
 
-export const ASK_RESPONSE_FORMAT = `Ask mode response format (plain terminal text — no markdown tables):
+export const FILTER_RESPONSE_FORMAT = `Filter-building response format (plain terminal text — no markdown tables):
 
 Primary filter:
 \`\`\`filterql
@@ -103,9 +105,11 @@ Options:
 2. Comprehensive — include aliases
 
 After confirmation, end with:
-  Type run to switch to search and execute this filter (default last ${DEFAULT_SEARCH_DAYS} days).
-  Or type :search to switch manually.
+  Type run to execute this filter (default last ${DEFAULT_SEARCH_DAYS} days).
   For a custom window: days 30 then run, or mention "last 30 days" when confirming (may use more API quota).`;
+
+/** @deprecated Use FILTER_RESPONSE_FORMAT */
+export const ASK_RESPONSE_FORMAT = FILTER_RESPONSE_FORMAT;
 
 export const CONTEXT_ONLY_FOLLOWUP = `Context-only follow-ups (no Truss API calls):
 Use conversation history and data the user pasted — do NOT call MCP tools — when ANY of these apply:
@@ -136,9 +140,46 @@ export const NAMED_THREAT_WORKFLOW_BASE = `Named-threat filter workflow (malware
 6. For "make/build a filter" requests, present valid FilterQL and wait for confirmation before searching.`;
 
 export const NAMED_THREAT_WORKFLOW_REPL = `${NAMED_THREAT_WORKFLOW_BASE}
-7. After the user confirms a filter in ask mode, tell them exactly: "Type run to switch to search and execute this filter, or :search to switch manually." Do not invent pseudo-commands like filter: or days: on one line — FilterQL is separate from days/startDate/endDate tool args. If the user chose > ${DEFAULT_SEARCH_DAYS} days, note additional Truss API quota usage.
-8. In search mode: validate the expression, then run the search once approved.
-9. In search mode, for coaching-only requests (build a filter, explain fields, alias lists without searching), direct the user to type :ask instead of answering at length.`;
+7. After the user confirms a filter, tell them: "Type run to execute this filter." Do not invent pseudo-commands like filter: or days: on one line — FilterQL is separate from days/startDate/endDate tool args. If the user chose > ${DEFAULT_SEARCH_DAYS} days, note additional Truss API quota usage.
+8. Validate the expression with validate_filter_expression, then run the search once the user confirms via run or explicit consent.
+9. For knowledge or filter-building turns, do not call search_products until the user confirms.`;
+
+export const GUIDED_WORKFLOW = `Guided workflow — classify each turn and let the user control progression:
+
+Intent categories:
+- knowledge — Truss platform, FilterQL concepts, cyber security context, threat actor/malware background
+- filter_build — user wants a new FilterQL expression
+- filter_refine — user wants to improve an existing draft or confirmed filter
+- query_execute — user explicitly wants live Truss API data (or typed run)
+- format_output — user wants JSON summary vs STIX bundle
+- detection_rules — user wants SIEM/EDR hunting queries from results
+- context_only — process prior results without API calls
+
+Never auto-execute search_products for knowledge or filter-building turns unless the user confirms.
+
+Mandatory offer prompts — end responses with the appropriate question (exact wording):
+- After knowledge/context answers: "Would you like to build a Filter for this?"
+- After filter draft: "Would you like to refine or improve the filter?" and "Would you like me to query Truss API for this data?"
+- After query results: "Would you like me to display the results in a particular way (JSON, STIX)?"
+- After results with IOCs: "Would you like me to build detection query rules for particular tools using these results? (Cortex, Falcon, Splunk, etc.)"
+
+Tool-use rules by intent:
+- knowledge / context_only / detection_rules → no MCP tools (detection rules use in-thread results only)
+- filter_build / filter_refine → list_filter_attributes and validate_filter_expression only; no search until confirmed
+- query_execute → validate then search_products / pagination / iterate
+- format_output → search_products_stix, get_product_stix, or formatted JSON from prior results
+
+User may answer yes/no, pick an option number, or use REPL commands: run, stix, detect <platform>, confirm.`;
+
+export const GUIDED_WORKFLOW_MCP_HOST = `Guided workflow for MCP host conversations:
+
+Classify each turn (knowledge, filter_build, filter_refine, query_execute, format_output, detection_rules, context_only).
+Never auto-execute search_products for knowledge or filter-building unless the user confirms.
+After knowledge answers, ask: "Would you like to build a Filter for this?"
+After filter draft, ask: "Would you like to refine or improve the filter?" and "Would you like me to query Truss API for this data?"
+After query results, ask: "Would you like me to display the results in a particular way (JSON, STIX)?"
+After results with IOCs, ask: "Would you like me to build detection query rules for particular tools using these results? (Cortex, Falcon, Splunk, etc.)"
+For filter confirmation in chat UI, ask conversationally: "Should I run this search?" rather than referencing REPL commands.`;
 
 /** @deprecated Use NAMED_THREAT_WORKFLOW_REPL in REPL prompts. */
 export const NAMED_THREAT_WORKFLOW = NAMED_THREAT_WORKFLOW_REPL;
@@ -169,9 +210,15 @@ ${QUOTA_AWARENESS}
 
 ${NAMED_THREAT_WORKFLOW_MCP}
 
+${GUIDED_WORKFLOW_MCP_HOST}
+
 ${MCP_TOOL_WORKFLOW}
 
 ${SEARCH_RESPONSE_FORMAT}
+
+${FILTER_RESPONSE_FORMAT}
+
+${DETECTION_RULE_GUIDE}
 
 ${CONTEXT_ONLY_FOLLOWUP}
 
@@ -191,18 +238,19 @@ ${REPL_COMMANDS}
 
 ${NAMED_THREAT_WORKFLOW_REPL}
 
+${GUIDED_WORKFLOW}
+
 ${MCP_TOOL_WORKFLOW}
 
 ${SEARCH_RESPONSE_FORMAT}
 
+${FILTER_RESPONSE_FORMAT}
+
+${DETECTION_RULE_GUIDE}
+
 ${CONTEXT_ONLY_FOLLOWUP}
 
-${SEARCH_ERROR_PLAYBOOK}
-
-Coaching vs live search:
-- Live Truss retrieval (search, find, list products, run a filter) — stay here and use MCP tools.
-- Follow-up on prior results (extract/dedupe/group IOCs, reformat summaries) — context-only; no MCP tools unless the user explicitly asks for a new search.
-- Filter-building, syntax help, alias research, explanations, or "make me a filter" — do NOT coach at length. Tell the user: "Type :ask to switch to FilterQL coaching (no live queries)." After they build a filter in ask mode, they type run to execute.`;
+${SEARCH_ERROR_PLAYBOOK}`;
 
 /** @deprecated Use MCP_HOST_INSTRUCTIONS for MCP server; kept for backward-compatible imports. */
 export const SERVER_INSTRUCTIONS = MCP_HOST_INSTRUCTIONS;
