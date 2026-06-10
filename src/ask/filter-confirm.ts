@@ -35,6 +35,19 @@ export function isConfirmedFilterResponse(assistantText: string): boolean {
   return CONFIRMATION_MARKERS.some((pattern) => pattern.test(assistantText));
 }
 
+/** True when the assistant is summarizing executed search results, not proposing a new filter. */
+export function isSearchResultsSummary(text: string): boolean {
+  return (
+    /\*\*Results:\*\*\s*\d+\s+matches?\b/i.test(text) ||
+    /\bResults:\s*\*?\*?\s*\d+\s+matches?\b/i.test(text) ||
+    /\bResults:\s*\d+\s+matches?\b/i.test(text)
+  );
+}
+
+function hasFilterqlCodeBlock(text: string): boolean {
+  return /```filterql[\s\S]*?```/i.test(text);
+}
+
 function normalizeFilterExpression(raw: string): string {
   return raw
     .replace(/^filter:\s*/i, '')
@@ -100,6 +113,10 @@ export function extractFilterFromText(
   options: ExtractFilterOptions = {}
 ): string | undefined {
   const { preferConfirmed = false, allowDraft = true } = options;
+
+  if (allowDraft && isSearchResultsSummary(text) && !hasFilterqlCodeBlock(text)) {
+    return undefined;
+  }
 
   if (preferConfirmed || isConfirmedFilterResponse(text)) {
     const confirmed = extractFromConfirmedSection(text);

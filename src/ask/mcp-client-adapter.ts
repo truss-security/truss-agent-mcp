@@ -1,5 +1,10 @@
 import type { MCPCallToolResultLike, MCPClientLike } from '@anthropic-ai/sdk/helpers/beta/mcp';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import {
+  toolResultText,
+  traceToolCall,
+  type ToolTraceCallbacks,
+} from './tool-trace.js';
 
 function normalizeCallToolResult(result: Record<string, unknown>): MCPCallToolResultLike {
   if (Array.isArray(result.content)) {
@@ -26,14 +31,28 @@ function normalizeCallToolResult(result: Record<string, unknown>): MCPCallToolRe
   };
 }
 
-export function asMcpClientLike(client: Client): MCPClientLike {
+export function asMcpClientLike(
+  client: Client,
+  callbacks?: ToolTraceCallbacks
+): MCPClientLike {
   return {
     callTool: async (params) => {
-      const result = await client.callTool({
-        name: params.name,
-        arguments: params.arguments,
-      });
-      return normalizeCallToolResult(result as Record<string, unknown>);
+      const args = (params.arguments ?? {}) as Record<string, unknown>;
+      const { result } = await traceToolCall(
+        params.name,
+        args,
+        async () => {
+          const raw = await client.callTool({
+            name: params.name,
+            arguments: args,
+          });
+          return raw as Record<string, unknown>;
+        },
+        callbacks
+      );
+      return normalizeCallToolResult(result);
     },
   };
 }
+
+export { toolResultText };

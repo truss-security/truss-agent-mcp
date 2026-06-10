@@ -26,7 +26,6 @@
     "truss:init": "node dist/truss-cli.js init",
     "truss:doctor": "node dist/truss-cli.js doctor",
     "truss:search": "node dist/truss-cli.js search",
-    "truss:ask": "node dist/truss-cli.js ask",
     "truss:mcp": "node dist/truss-cli.js mcp",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "smoke": "npm run build && node --import tsx --test tests/smoke.test.ts",
@@ -51,6 +50,7 @@
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@truss-security/truss-sdk": "^0.5.3",
     "openai": "^4.104.0",
+    "picocolors": "^1.1.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

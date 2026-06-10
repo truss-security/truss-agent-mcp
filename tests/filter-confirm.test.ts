@@ -4,6 +4,7 @@ import {
   extractFilterFromText,
   isConfirmedFilterResponse,
   isFilterConfirmation,
+  isSearchResultsSummary,
 } from '../src/ask/filter-confirm.ts';
 
 describe('filter-confirm', () => {
@@ -40,5 +41,23 @@ Confirmed filter:
   it('extractFilterFromText returns undefined for draft when preferConfirmed without marker', () => {
     const text = '```\ntags = "Sandworm"\n```';
     assert.equal(extractFilterFromText(text, { preferConfirmed: true, allowDraft: false }), undefined);
+  });
+
+  it('does not treat executed search summaries as draft filters', () => {
+    const text = `**Filter:** (tags = "TeamPCP" OR tags = "Shai-Hulud")
+**Window:** Last 7 days
+**Results:** 13 matches
+
+1. [83529] A Record-Breaking Patch Tuesday`;
+    assert.equal(isSearchResultsSummary(text), true);
+    assert.equal(extractFilterFromText(text, { allowDraft: true }), undefined);
+  });
+
+  it('still extracts filterql blocks from search summaries when present', () => {
+    const text = `**Results:** 2 matches
+\`\`\`filterql
+tags = "Sandworm"
+\`\`\``;
+    assert.equal(extractFilterFromText(text, { allowDraft: true }), 'tags = "Sandworm"');
   });
 });

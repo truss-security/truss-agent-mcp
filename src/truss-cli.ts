@@ -43,8 +43,11 @@ async function main(): Promise<void> {
     return;
   }
 
-  const config = loadAskConfig();
-  await runRepl(config, command);
+  if (command === 'search') {
+    const config = loadAskConfig();
+    await runRepl(config);
+    return;
+  }
 }
 
 main().catch((err) => {
