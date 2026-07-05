@@ -67,7 +67,7 @@ On `e/new-ai` search server:
 |---------|---------|
 | Provider | Anthropic Messages API |
 | Model | `LLM_CHAT_MODEL` or `claude-sonnet-4-20250514` |
-| Key | `ANTHROPIC_API_KEY` or `CLAUDE_API_KEY` |
+| Key | `ANTHROPIC_API_KEY` |
 | Temperature | 0.2 |
 | Max tokens | 2048 |
 

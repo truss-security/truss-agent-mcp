@@ -20,7 +20,7 @@ ASSISTANT_LLM_MAX_TOKENS=2048
 | Variable | Used by |
 |----------|---------|
 | `ASSISTANT_ANTHROPIC_API_KEY` | Orchestrator + agents invoked via `/assistant/query` tree |
-| `ANTHROPIC_API_KEY` / `CLAUDE_API_KEY` | Non-assistant paths (if any remain on same server) |
+| `ANTHROPIC_API_KEY` | Non-assistant paths (if any remain on same server) |
 
 **Rule:** Code paths under `src/data/assistant/` and agent-invoked `*ResponseService` / `aiFilterService` must call **`callAssistantLLM`** / **`callAssistantLLMWithTools`**, not the generic `callLLMChat` with the shared key.
 
