@@ -438,8 +438,11 @@ Monthly `mcp_monthly_usage` rollups can feed Stripe metered billing if MCP becom
 - [Supabase: Rate limiting Edge Functions](https://supabase.com/docs/guides/functions/examples/rate-limiting)
 - [Truss MCP tool catalog](./04-mcp-tool-catalog.md)
 - [Truss public API contract](./02-public-api-contract.md)
+- [Local server architecture](./01-reference-server-architecture.md)
 - [SECURITY.md](../SECURITY.md) — credential handling principles
 
 ---
+
+**Prev:** [04 — MCP tool catalog](./04-mcp-tool-catalog.md) · [Docs index](./README.md)
 
 *Questions or feedback: discuss in Truss engineering / product sync.*
