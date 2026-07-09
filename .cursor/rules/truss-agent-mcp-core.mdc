@@ -1,0 +1,23 @@
+---
+description: Core rules for truss-agent-mcp — security, API boundary, scope
+alwaysApply: true
+---
+
+# truss-agent-mcp core rules
+
+Read [AGENTS.md](../../AGENTS.md) for full operations.
+
+## Security
+- Never commit secrets; `.env` is gitignored.
+- `TRUSS_API_KEY` in host env only — never in MCP tool args or error output.
+- No internal Truss endpoints, private repo names, or unreleased API docs.
+
+## API scope
+- Public tier only: `/product/search`, `/product/search/stix`, `/product/{id}/stix`.
+- Do not add admin-route tools without explicit API + SDK support.
+
+## Code changes
+- Minimize diff; match existing TypeScript ESM style.
+- Tool changes: update `schemas.ts`, `register-tools.ts`, `instructions.ts`, and `docs/04-mcp-tool-catalog.md`.
+- Default IOC-safe summaries; `include_indicators` is opt-in.
+- Run `npm run build && npm test` after substantive changes.
