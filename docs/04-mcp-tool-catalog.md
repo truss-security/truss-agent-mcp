@@ -72,4 +72,4 @@ Full `indicators` map only when `include_indicators: true`.
 
 ## Planned (not in v1)
 
-See [06-api-roadmap.md](./06-api-roadmap.md) — quota API, contributor POST, smart/vector search, native product GET.
+Future tools may cover quota visibility, contributor POST, smart/vector search, and native product GET — not available in v1.
