@@ -97,9 +97,7 @@ Full list: [env.example](env.example)
 - [FilterQL cookbook](guides/filterql-cookbook.md)
 - [Cursor setup](guides/client-setup-cursor.md) · [Claude Desktop](guides/client-setup-claude-desktop.md)
 
-**Reference** — API contract, tools, architecture
-
-- [docs/README.md](docs/README.md)
+**Reference** — API contract, tools, architecture ([docs/README.md](docs/README.md) — docs 01–05)
 
 ## Development
 
@@ -108,6 +106,8 @@ npm install && npm run build
 npm test
 npm run truss:search    # from source without global install
 ```
+
+**Contributors / AI agents:** see [AGENTS.md](AGENTS.md) for repo operations and conventions.
 
 Publish: [guides/publishing.md](guides/publishing.md) · Changes: [CHANGELOG.md](CHANGELOG.md)
 

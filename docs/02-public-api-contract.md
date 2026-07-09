@@ -56,3 +56,7 @@ The server sets `userAgent: truss-mcp/<version>` on the SDK client for support a
 ## Legacy `/agent-data`
 
 Named server-side agent configs via `POST /agent-data` are **not** exposed as MCP tools. Use inline `filterExpression` (same as dashboard export and truss-agent v2 connections).
+
+---
+
+**Prev:** [01 — Server architecture](./01-reference-server-architecture.md) · **Next:** [03 — FilterQL for LLMs](./03-filterql-for-llms.md) · [Docs index](./README.md)

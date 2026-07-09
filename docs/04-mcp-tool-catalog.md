@@ -73,3 +73,7 @@ Full `indicators` map only when `include_indicators: true`.
 ## Planned (not in v1)
 
 Future tools may cover quota visibility, contributor POST, smart/vector search, and native product GET — not available in v1.
+
+---
+
+**Prev:** [03 — FilterQL for LLMs](./03-filterql-for-llms.md) · **Next:** [05 — Hosted MCP (proposal)](./05-hosted-mcp-oauth-architecture.md) · [Docs index](./README.md)
