@@ -69,9 +69,11 @@ npm test
 | Doc | Use when |
 |-----|----------|
 | [README.md](README.md) | User-facing overview |
+| [docs/01-reference-server-architecture.md](docs/01-reference-server-architecture.md) | Local MCP architecture |
 | [docs/04-mcp-tool-catalog.md](docs/04-mcp-tool-catalog.md) | Tool params and behavior |
 | [docs/02-public-api-contract.md](docs/02-public-api-contract.md) | API auth and routes |
 | [docs/03-filterql-for-llms.md](docs/03-filterql-for-llms.md) | FilterQL grammar |
+| [docs/05-hosted-mcp-oauth-architecture.md](docs/05-hosted-mcp-oauth-architecture.md) | Hosted MCP proposal |
 | [guides/getting-started.md](guides/getting-started.md) | Install and MCP host setup |
 | [guides/publishing.md](guides/publishing.md) | npm release |
 | [SECURITY.md](SECURITY.md) | Credentials and data flow |
@@ -81,7 +83,7 @@ npm test
 These were removed intentionally for the public repo:
 
 - `docs/aiAssistantPlan/` — internal assistant design
-- `docs/01-vision.md`, `docs/06-api-roadmap.md` — planning docs (roadmap facts live inline in API/tool docs)
+- Legacy planning docs (`01-vision`, `06-api-roadmap`) — removed; facts live inline in API/tool docs
 - `docs/huggingface/` — external mirror template
 
 ## Commits and releases

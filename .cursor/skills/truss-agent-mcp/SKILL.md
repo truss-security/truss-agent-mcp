@@ -51,6 +51,8 @@ See `guides/publishing.md`. Tag `v*` → `release.yml` publishes npm package.
 | Area | Path |
 |------|------|
 | MCP server | `src/server.ts` |
+| Local architecture | `docs/01-reference-server-architecture.md` |
+| Hosted MCP (proposal) | `docs/05-hosted-mcp-oauth-architecture.md` |
 | Tools | `src/tools/register-tools.ts` |
 | API client | `src/client.ts`, `src/config.ts` |
 | CLI REPL | `src/ask/repl.ts` |

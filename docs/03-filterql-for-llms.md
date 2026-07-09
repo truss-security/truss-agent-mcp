@@ -54,3 +54,7 @@ REPL: `run` after filter confirm, or `run 30` / `days 30`.
 - Dates inside FilterQL
 
 Examples: [../guides/filterql-cookbook.md](../guides/filterql-cookbook.md)
+
+---
+
+**Prev:** [02 — Public API contract](./02-public-api-contract.md) · **Next:** [04 — MCP tool catalog](./04-mcp-tool-catalog.md) · [Docs index](./README.md)

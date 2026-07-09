@@ -2,15 +2,25 @@
 
 Technical reference for the Truss MCP server and public API integration.
 
-## Core
+Read in order for a full picture, or jump to the topic you need.
 
-| Doc | Contents |
-|-----|----------|
-| [03-filterql-for-llms.md](./03-filterql-for-llms.md) | FilterQL grammar, operators, workflow for host LLMs |
-| [04-mcp-tool-catalog.md](./04-mcp-tool-catalog.md) | Seven MCP tools, parameters, response shape |
-| [02-public-api-contract.md](./02-public-api-contract.md) | Routes, auth, rate limits |
-| [05-reference-server-architecture.md](./05-reference-server-architecture.md) | stdio transport, env, errors |
-| [07-hosted-mcp-oauth-architecture.md](./07-hosted-mcp-oauth-architecture.md) | Hosted MCP, OAuth, subscription tiers (proposal) |
+## Index
+
+| # | Doc | Contents |
+|---|-----|----------|
+| 01 | [reference-server-architecture.md](./01-reference-server-architecture.md) | Local MCP process model, stdio transport, env, errors |
+| 02 | [public-api-contract.md](./02-public-api-contract.md) | Routes, auth, rate limits (public API tier) |
+| 03 | [filterql-for-llms.md](./03-filterql-for-llms.md) | FilterQL grammar, operators, workflow for host LLMs |
+| 04 | [mcp-tool-catalog.md](./04-mcp-tool-catalog.md) | Seven MCP tools, parameters, response shape |
+| 05 | [hosted-mcp-oauth-architecture.md](./05-hosted-mcp-oauth-architecture.md) | Hosted MCP at `www.truss-security.com/mcp`, OAuth, subscription tiers (proposal) |
+
+## Local MCP (shipped today)
+
+Docs **01–04** describe the npm `truss-mcp` package: stdio server, API key auth, and the seven tools.
+
+## Hosted MCP (proposed)
+
+Doc **05** describes the remote MCP endpoint on Supabase — OAuth, tier gating, and partner integrations (Panther, Sumo, etc.).
 
 ## Guides
 
