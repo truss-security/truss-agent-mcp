@@ -25,7 +25,7 @@ These require `accessType: admin` on the API key today and are **not** exposed a
 - `POST /product` and other writes
 - Analytics, batch admin, `POST /pg-query`
 
-**Planned expansions** (quota visibility, contributor POST, customer-tier smart/similar search, product GET by id) are described in [06-api-roadmap.md](./06-api-roadmap.md)—not yet available.
+**Planned expansions** (quota visibility, contributor POST, customer-tier smart/similar search, product GET by id) are not yet available in this MCP server.
 
 The public [OpenAPI spec](https://github.com/truss-security/truss-docs/blob/main/openapi/trussapi.json) documents only the customer-tier search and STIX routes.
 
