@@ -109,6 +109,8 @@ npm test
 npm run truss:search    # from source without global install
 ```
 
+**Contributors / AI agents:** see [AGENTS.md](AGENTS.md) for repo operations and conventions.
+
 Publish: [guides/publishing.md](guides/publishing.md) · Changes: [CHANGELOG.md](CHANGELOG.md)
 
 ## Related

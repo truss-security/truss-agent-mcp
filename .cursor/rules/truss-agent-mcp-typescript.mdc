@@ -1,0 +1,14 @@
+---
+description: TypeScript conventions for truss-agent-mcp source
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# TypeScript conventions
+
+- ESM imports with `.js` extension (`import { x } from './foo.js'`).
+- Validate MCP tool inputs with Zod in `src/tools/schemas.ts`.
+- Format Truss API errors via `formatTrussError()` — do not leak keys in messages.
+- Env loading: `loadAllEnv()` at CLI startup; `loadConfig()` for MCP server.
+- CLI-only code lives under `src/ask/`; MCP server logic in `src/server.ts` + `src/tools/`.
+- Use `maskSecret()` in doctor/env diagnostics — never print full API keys.

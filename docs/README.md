@@ -10,6 +10,7 @@ Technical reference for the Truss MCP server and public API integration.
 | [04-mcp-tool-catalog.md](./04-mcp-tool-catalog.md) | Seven MCP tools, parameters, response shape |
 | [02-public-api-contract.md](./02-public-api-contract.md) | Routes, auth, rate limits |
 | [05-reference-server-architecture.md](./05-reference-server-architecture.md) | stdio transport, env, errors |
+| [07-hosted-mcp-oauth-architecture.md](./07-hosted-mcp-oauth-architecture.md) | Hosted MCP, OAuth, subscription tiers (proposal) |
 
 ## Guides
 
