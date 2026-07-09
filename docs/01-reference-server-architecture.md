@@ -56,3 +56,7 @@ A simple in-process timestamp gate reduces burst tool calls from enthusiastic LL
 - `@modelcontextprotocol/sdk` — MCP protocol
 - `@truss-security/truss-sdk` — HTTP + FilterQL validation
 - `zod` — tool input schemas
+
+---
+
+**Next:** [02 — Public API contract](./02-public-api-contract.md) · [Docs index](./README.md)
