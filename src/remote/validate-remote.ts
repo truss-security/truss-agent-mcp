@@ -226,7 +226,7 @@ function waitForCallback(port: number, expectedState: string): Promise<{ code: s
 
         res.statusCode = 200;
         res.setHeader('content-type', 'text/plain');
-        res.end('Truss MCP OAuth validation succeeded. You can close this browser tab.');
+        res.end('Truss MCP OAuth authorization code received. Return to the connecting app for the final validation result.');
         clearTimeout(timeout);
         server.close();
         resolve({ code, state });
@@ -260,7 +260,6 @@ function authUrl(args: {
   url.searchParams.set('code_challenge_method', 'S256');
   url.searchParams.set('state', args.state);
   url.searchParams.set('resource', args.resource);
-  url.searchParams.set('scope', 'openid profile email');
   return url.toString();
 }
 
@@ -405,7 +404,7 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
   const payload = decodeJwtPayload(token.access_token);
   if (payload) {
     logOk(`Access token received for subject: ${String(payload.sub ?? '(missing sub)')}`);
-    logInfo(`Token claims: aud=${JSON.stringify(payload.aud)} role=${String(payload.role ?? '(missing role)')} mcp_scope=${String(payload.mcp_scope ?? '(missing mcp_scope)')}`);
+    logInfo(`Token claims: aud=${JSON.stringify(payload.aud)} truss_role=${String(payload.truss_role ?? '(missing truss_role)')} mcp_scope=${String(payload.mcp_scope ?? '(missing mcp_scope)')}`);
   } else {
     logWarn('Could not decode access token payload.');
   }
