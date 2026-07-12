@@ -16,6 +16,7 @@ describe('truss CLI router', () => {
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'doctor']), 'doctor');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'init']), 'init');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'mcp']), 'mcp');
+    assert.equal(parseCommandForTest(['node', 'truss-mcp', 'validate-remote']), 'validate-remote');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'version']), 'version');
   });
 

@@ -6,6 +6,8 @@ Commands
   truss-mcp mcp        stdio MCP server (Cursor / Claude Desktop)
   truss-mcp init       Interactive setup
   truss-mcp doctor     Validate keys and API access
+  truss-mcp validate-remote <url>
+                       Validate a remote MCP OAuth server
   truss-mcp help       This help
 
 Guided workflow
