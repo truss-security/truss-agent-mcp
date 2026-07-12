@@ -1,4 +1,4 @@
-export type CliCommand = 'search' | 'help' | 'version' | 'doctor' | 'init' | 'mcp';
+export type CliCommand = 'search' | 'help' | 'version' | 'doctor' | 'init' | 'mcp' | 'validate-remote';
 
 export function parseCommand(argv: string[]): CliCommand | null {
   if (argv.includes('--version') || argv.includes('-V')) {
@@ -10,7 +10,7 @@ export function parseCommand(argv: string[]): CliCommand | null {
     return 'help';
   }
 
-  const known: CliCommand[] = ['search', 'version', 'doctor', 'init', 'mcp', 'help'];
+  const known: CliCommand[] = ['search', 'version', 'doctor', 'init', 'mcp', 'validate-remote', 'help'];
   if (known.includes(command as CliCommand)) {
     return command as CliCommand;
   }

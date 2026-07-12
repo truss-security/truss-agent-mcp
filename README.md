@@ -27,6 +27,7 @@ Node.js 18+. Binary name **`truss-mcp`** avoids conflict with `@truss-security/t
 | `truss-mcp mcp` | stdio MCP server for Cursor, Claude Desktop, VS Code |
 | `truss-mcp init` | Interactive `.env` setup |
 | `truss-mcp doctor` | Validate keys and API access |
+| `truss-mcp validate-remote <url>` | Validate a remote MCP OAuth server (discovery, DCR, PKCE, tools) |
 | `truss-mcp help` | Usage summary |
 
 ## Guided search workflow
@@ -74,6 +75,23 @@ Only `TRUSS_API_KEY` required — the host provides the LLM.
 ```
 
 Before publish, use `npx -y @truss-security/truss-agent-mcp mcp` or a local `node dist/truss-cli.js mcp` path. See [guides/getting-started.md](guides/getting-started.md).
+
+## Remote MCP OAuth validation
+
+Use this developer-only command to validate a remote MCP endpoint that supports OAuth discovery and Dynamic Client Registration:
+
+```bash
+truss-mcp validate-remote https://api-test.truss-security.com/mcp
+```
+
+The validator checks protected resource metadata, authorization server metadata, Dynamic Client Registration, OAuth authorization code + PKCE, token exchange, `initialize`, `tools/list`, and a small `search_threats` tool call. It starts a temporary localhost callback server on port `9876` and opens your browser for login/consent.
+
+Options:
+
+```bash
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --port 9877
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --no-open
+```
 
 ## Configuration
 
