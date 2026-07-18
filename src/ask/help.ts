@@ -6,6 +6,10 @@ Commands
   truss-mcp mcp        stdio MCP server (Cursor / Claude Desktop)
   truss-mcp init       Interactive setup
   truss-mcp doctor     Validate keys and API access
+  truss-mcp validate-remote <url>
+                       OAuth + MCP doctor (discovery, DCR, consent, tools + Truss data)
+                       Options: --verbose  --strict-claude  --save-token PATH
+                                --token-file PATH  --no-open  --port 9876
   truss-mcp help       This help
 
 Guided workflow

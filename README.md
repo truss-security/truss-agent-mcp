@@ -27,6 +27,7 @@ Node.js 18+. Binary name **`truss-mcp`** avoids conflict with `@truss-security/t
 | `truss-mcp mcp` | stdio MCP server for Cursor, Claude Desktop, VS Code |
 | `truss-mcp init` | Interactive `.env` setup |
 | `truss-mcp doctor` | Validate keys and API access |
+| `truss-mcp validate-remote <url>` | Validate a remote MCP OAuth server (discovery, DCR, PKCE, tools) |
 | `truss-mcp help` | Usage summary |
 
 ## Guided search workflow
@@ -74,6 +75,41 @@ Only `TRUSS_API_KEY` required — the host provides the LLM.
 ```
 
 Before publish, use `npx -y @truss-security/truss-agent-mcp mcp` or a local `node dist/truss-cli.js mcp` path. See [guides/getting-started.md](guides/getting-started.md).
+
+## Remote MCP OAuth validation
+
+Use this developer-only command as an OAuth + MCP doctor for a remote endpoint (discovery, DCR, PKCE, consent, Bearer tools). After OAuth it **requires** `search_threats` to return at least one Truss product (`id` + `title`). The access token stays **in memory for that process only** — it is not stored in the Truss dashboard.
+
+```bash
+truss-mcp validate-remote https://api-test.truss-security.com/mcp
+```
+
+After token exchange it prints a **Claude connector compatibility checklist** (resource URI, redirects, PKCE S256, issuer match, audience vs MCP resource, `truss_role`), then proves MCP access with real Truss data.
+
+Options:
+
+```bash
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --verbose
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --save-token /tmp/truss-mcp-token
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --token-file /tmp/truss-mcp-token
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --port 9877
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --no-open
+```
+
+- `--verbose` — HTTP statuses, key headers, truncated bodies (tokens redacted)
+- `--strict-claude` — exit `2` if the Claude checklist has WARN/FAIL (even when Truss MCP calls succeed)
+- `--save-token PATH` — write the access token for local replay (mode `0600`; delete after debugging)
+- `--token-file PATH` — skip browser OAuth; reuse a saved token to re-check MCP access + Truss data
+
+Optional automated test (no browser; uses a saved token):
+
+```bash
+TRUSS_RUN_MCP_OAUTH=1 \
+TRUSS_MCP_URL=https://api-test.truss-security.com/mcp \
+TRUSS_MCP_OAUTH_TOKEN="$(cat /tmp/truss-mcp-token)" \
+npm test -- tests/validate-remote-oauth.integration.test.ts
+```
 
 ## Configuration
 
