@@ -8,6 +8,7 @@ import { runInit } from './ask/init.js';
 import { runRepl } from './ask/repl.js';
 import { parseCommand } from './truss-cli-router.js';
 import { runServer } from './server.js';
+import { parseValidateRemoteOptions, runValidateRemote } from './remote/validate-remote.js';
 
 async function main(): Promise<void> {
   loadAllEnv();
@@ -41,6 +42,10 @@ async function main(): Promise<void> {
   if (command === 'mcp') {
     await runServer();
     return;
+  }
+
+  if (command === 'validate-remote') {
+    process.exit(await runValidateRemote(parseValidateRemoteOptions(process.argv)));
   }
 
   if (command === 'search') {
