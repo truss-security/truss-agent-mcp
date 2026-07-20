@@ -5,6 +5,7 @@ import {
   getSystemPrompt,
 } from '../src/ask/system-prompt.ts';
 import {
+  EPISTEMIC_GROUNDING,
   MCP_HOST_INSTRUCTIONS,
   REPL_SEARCH_INSTRUCTIONS,
   GUIDED_WORKFLOW,
@@ -21,6 +22,8 @@ describe('system prompts', () => {
     assert.match(UNIFIED_SEARCH_PROMPT, /run/);
     assert.match(UNIFIED_SEARCH_PROMPT, /do not call MCP tools/i);
     assert.match(UNIFIED_SEARCH_PROMPT, /context-only/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /Epistemic grounding/i);
+    assert.match(UNIFIED_SEARCH_PROMPT, /other sources may still/i);
     assert.doesNotMatch(UNIFIED_SEARCH_PROMPT, /:ask/);
   });
 
@@ -34,6 +37,14 @@ describe('system prompts', () => {
     assert.doesNotMatch(MCP_HOST_INSTRUCTIONS, /type run to switch/i);
     assert.match(MCP_HOST_INSTRUCTIONS, /validate_filter_expression/i);
     assert.match(MCP_HOST_INSTRUCTIONS, /Would you like to build a Filter for this\?/);
+  });
+
+  it('epistemic grounding is shared by REPL and MCP host prompts', () => {
+    assert.ok(REPL_SEARCH_INSTRUCTIONS.includes(EPISTEMIC_GROUNDING));
+    assert.ok(MCP_HOST_INSTRUCTIONS.includes(EPISTEMIC_GROUNDING));
+    assert.match(EPISTEMIC_GROUNDING, /does not currently have/i);
+    assert.match(EPISTEMIC_GROUNDING, /could still exist in other sources/i);
+    assert.doesNotMatch(EPISTEMIC_GROUNDING, /never exist/i);
   });
 
   it('includes all Truss FilterQL attributes in field guide', () => {
