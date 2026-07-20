@@ -2,10 +2,10 @@ export function printHelp(): void {
   console.log(`truss-mcp — Truss threat intelligence + LLM assistant
 
 Commands
-  truss-mcp search     Guided Truss search REPL (MCP tools always on)
+  truss-mcp search     Guided Truss search REPL (hosted MCP by default)
   truss-mcp mcp        Local stdio MCP server (legacy / air-gap)
-  truss-mcp init       Interactive setup
-  truss-mcp doctor     Validate local keys and REST access
+  truss-mcp init       Interactive setup (OAuth token path + LLM)
+  truss-mcp doctor     Validate local keys and REST (legacy)
   truss-mcp doctor --remote [--strict-claude] [--url URL]
                        Hosted OAuth doctor (same as validate-remote; registry gate)
   truss-mcp validate-remote [url]
@@ -15,12 +15,16 @@ Commands
   truss-mcp help       This help
 
 Guided workflow
-  Knowledge → build filter → confirm → run → STIX / detection rules
-  The assistant asks before querying Truss API or exporting results.
+  Knowledge → shape search → confirm → run → STIX / detection rules (LLM extras)
+  Same five hosted tools as Cursor / Claude Desktop.
 
-Remote search (OAuth parity with Cursor)
-  truss-mcp validate-remote --save-token /tmp/truss-mcp-token
-  TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token truss-mcp search
+Remote search (default — OAuth parity with Cursor)
+  truss-mcp doctor --remote --save-token /tmp/truss-mcp-token
+  # set TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token in .env
+  truss-mcp search
+
+Legacy stdio
+  TRUSS_MCP_TRANSPORT=stdio TRUSS_API_KEY=… truss-mcp search
 
 REPL commands (run run 30 days filter confirm stix detect color help clear status exit)
   Color-coded output: You / MCP / Results / Truss blocks (color off to disable)

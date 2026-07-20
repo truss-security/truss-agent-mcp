@@ -24,12 +24,23 @@ const SEARCH_TOOLS = new Set([
   'search_products',
   'search_products_page',
   'iterate_products_summary',
+  'search_threats',
+  'lookup_ioc',
 ]);
 
 export function summarizeToolArgs(name: string, args: Record<string, unknown>): string {
   const parts: string[] = [];
   if (typeof args.filterExpression === 'string' && args.filterExpression) {
     parts.push(`filter: ${args.filterExpression}`);
+  }
+  if (typeof args.query === 'string' && args.query) {
+    parts.push(`query: ${args.query}`);
+  }
+  if (typeof args.ioc === 'string' && args.ioc) {
+    parts.push(`ioc: ${args.ioc}`);
+  }
+  if (typeof args.value === 'string' && args.value && name === 'lookup_ioc') {
+    parts.push(`ioc: ${args.value}`);
   }
   if (typeof args.productId === 'number') {
     parts.push(`id: ${args.productId}`);
@@ -64,9 +75,16 @@ export function summarizeToolResult(name: string, resultText: string, isError: b
     if (name === 'validate_filter_expression') {
       return data.valid === true ? 'valid' : 'invalid';
     }
-    if (name === 'search_products_stix' || name === 'get_product_stix') {
+    if (
+      name === 'search_products_stix' ||
+      name === 'get_product_stix' ||
+      name === 'search_stix'
+    ) {
       const count = data.objectCount ?? (data.bundle as { objects?: unknown[] } | undefined)?.objects?.length;
       if (count != null) return `${count} STIX objects`;
+    }
+    if (name === 'get_product' && data.id != null) {
+      return `product ${data.id}`;
     }
     if (name === 'iterate_products_summary' && Array.isArray(data.products)) {
       const suffix = data.truncated ? ' (truncated)' : '';

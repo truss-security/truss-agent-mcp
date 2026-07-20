@@ -17,6 +17,8 @@ const SEARCH_TOOL_NAMES = new Set([
   'search_products',
   'search_products_page',
   'iterate_products_summary',
+  'search_threats',
+  'lookup_ioc',
 ]);
 
 const MAX_DISPLAY_ROWS = 15;

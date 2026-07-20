@@ -134,7 +134,7 @@ export async function runRepl(config: AskConfig): Promise<void> {
     }
 
     const result = await withSpinner(SPINNER_LABEL, (spinner) =>
-      runTurn(config, session, turnState, userText, getSystemPrompt(), {
+      runTurn(config, session, turnState, userText, getSystemPrompt(config.mcpTransport), {
         onToolStart: (name, argsSummary) => {
           spinner.setLabel(`Running ${name}…`);
           printToolStart(name, argsSummary);
@@ -252,13 +252,13 @@ export async function runRepl(config: AskConfig): Promise<void> {
     maybePrintQuotaHint(window);
 
     printHint(`Running Truss search with:\n  ${filter}\n  Window: ${formatSearchWindow(window)}`);
-    const { displayText } = await executeTurn(buildRunSearchQuery(filter, window));
+    const { displayText } = await executeTurn(buildRunSearchQuery(filter, window, config.mcpTransport));
     workflow = updateWorkflowFromAssistant(workflow, displayText);
   };
 
   const runStixExport = async (): Promise<void> => {
     const filter = workflow.confirmedFilter ?? workflow.draftFilter ?? workflow.lastFilterExpression;
-    const query = buildStixQuery(filter, workflow.hasQueryResults);
+    const query = buildStixQuery(filter, workflow.hasQueryResults, config.mcpTransport);
     printHint('Exporting STIX…');
     const { displayText } = await executeTurn(query);
     workflow = updateWorkflowFromAssistant(workflow, displayText);

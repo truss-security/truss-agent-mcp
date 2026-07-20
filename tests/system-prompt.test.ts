@@ -2,12 +2,14 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   UNIFIED_SEARCH_PROMPT,
+  UNIFIED_SEARCH_PROMPT_REMOTE,
   getSystemPrompt,
 } from '../src/ask/system-prompt.ts';
 import {
   EPISTEMIC_GROUNDING,
   MCP_HOST_INSTRUCTIONS,
   REPL_SEARCH_INSTRUCTIONS,
+  REPL_SEARCH_INSTRUCTIONS_REMOTE,
   GUIDED_WORKFLOW,
 } from '../src/instructions.ts';
 
@@ -25,6 +27,13 @@ describe('system prompts', () => {
     assert.match(UNIFIED_SEARCH_PROMPT, /Epistemic grounding/i);
     assert.match(UNIFIED_SEARCH_PROMPT, /other sources may still/i);
     assert.doesNotMatch(UNIFIED_SEARCH_PROMPT, /:ask/);
+  });
+
+  it('remote prompt uses hosted tools', () => {
+    assert.ok(UNIFIED_SEARCH_PROMPT_REMOTE.includes(REPL_SEARCH_INSTRUCTIONS_REMOTE));
+    assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /search_threats/);
+    assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /lookup_ioc/);
+    assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /do not invent unavailable FilterQL tools/i);
   });
 
   it('REPL_SEARCH_INSTRUCTIONS includes guided workflow offers', () => {
@@ -65,7 +74,9 @@ describe('system prompts', () => {
     }
   });
 
-  it('getSystemPrompt returns unified prompt', () => {
+  it('getSystemPrompt returns transport-aware prompts', () => {
     assert.equal(getSystemPrompt(), UNIFIED_SEARCH_PROMPT);
+    assert.equal(getSystemPrompt('stdio'), UNIFIED_SEARCH_PROMPT);
+    assert.equal(getSystemPrompt('remote'), UNIFIED_SEARCH_PROMPT_REMOTE);
   });
 });
