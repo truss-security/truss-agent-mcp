@@ -1,6 +1,7 @@
 import { resolveLlmFromEnv } from './providers/resolve.js';
 import { resolveServerCliPath } from './resolve-server-path.js';
 import type { LlmProviderId } from './providers/catalog.js';
+import { defaultMcpUrlFromEnv } from '../remote/validate-remote.js';
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (value == null || value.trim() === '') return fallback;
@@ -16,7 +17,10 @@ function requireEnv(name: string): string {
   return value;
 }
 
+export type McpTransportMode = 'stdio' | 'remote';
+
 export interface AskConfig {
+  /** Present for stdio mode; may be empty when using remote OAuth. */
   trussApiKey: string;
   provider: LlmProviderId;
   llmApiKey: string;
@@ -27,13 +31,50 @@ export interface AskConfig {
   maxLimit: number;
   maxPages: number;
   debounceMs: number;
+  /** How the REPL connects to MCP tools. */
+  mcpTransport: McpTransportMode;
+  /** Hosted MCP URL when mcpTransport is remote. */
+  mcpUrl: string;
+  /** Path to Bearer token file from validate-remote --save-token. */
+  oauthTokenFile?: string;
+}
+
+/**
+ * Prefer hosted OAuth (Cursor/Claude parity). Legacy stdio only when:
+ * - TRUSS_MCP_TRANSPORT=stdio, or
+ * - TRUSS_API_KEY is set and no OAuth token file / remote transport.
+ */
+export function resolveMcpTransport(): McpTransportMode {
+  const explicit = process.env.TRUSS_MCP_TRANSPORT?.trim().toLowerCase();
+  if (explicit === 'remote') return 'remote';
+  if (explicit === 'stdio') return 'stdio';
+  if (process.env.TRUSS_MCP_OAUTH_TOKEN_FILE?.trim()) return 'remote';
+  if (process.env.TRUSS_API_KEY?.trim()) return 'stdio';
+  return 'remote';
 }
 
 export function loadAskConfig(fromModuleUrl?: string): AskConfig {
   const llm = resolveLlmFromEnv();
+  const mcpTransport = resolveMcpTransport();
+  const oauthTokenFile = process.env.TRUSS_MCP_OAUTH_TOKEN_FILE?.trim() || undefined;
+
+  if (mcpTransport === 'remote' && !oauthTokenFile) {
+    throw new Error(
+      'Remote MCP search (default) requires TRUSS_MCP_OAUTH_TOKEN_FILE.\n' +
+        '  1. truss-mcp doctor --remote --save-token /tmp/truss-mcp-token\n' +
+        '  2. Set TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token in .env\n' +
+        '  3. truss-mcp search\n' +
+        'Legacy air-gap: set TRUSS_MCP_TRANSPORT=stdio and TRUSS_API_KEY.'
+    );
+  }
+
+  const trussApiKey =
+    mcpTransport === 'remote'
+      ? (process.env.TRUSS_API_KEY?.trim() || '')
+      : requireEnv('TRUSS_API_KEY');
 
   return {
-    trussApiKey: requireEnv('TRUSS_API_KEY'),
+    trussApiKey,
     provider: llm.provider,
     llmApiKey: llm.apiKey,
     llmApiKeyEnv: llm.apiKeyEnv,
@@ -46,5 +87,8 @@ export function loadAskConfig(fromModuleUrl?: string): AskConfig {
     maxLimit: parsePositiveInt(process.env.TRUSS_MCP_MAX_LIMIT, 50),
     maxPages: parsePositiveInt(process.env.TRUSS_MCP_MAX_PAGES, 3),
     debounceMs: parsePositiveInt(process.env.TRUSS_MCP_DEBOUNCE_MS, 200),
+    mcpTransport,
+    mcpUrl: defaultMcpUrlFromEnv(),
+    oauthTokenFile,
   };
 }

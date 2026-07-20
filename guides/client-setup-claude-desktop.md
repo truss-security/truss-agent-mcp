@@ -5,9 +5,33 @@
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-## Example
+## Recommended: remote OAuth
+
+Requires **Growth+**. Claude opens a browser for Truss OAuth consent — no `TRUSS_API_KEY` in the config.
 
 See [../config/claude_desktop_config.json](../config/claude_desktop_config.json):
+
+```json
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "url": "https://api.truss-security.com/mcp"
+    }
+  }
+}
+```
+
+Fully quit and reopen Claude Desktop. Approve consent when prompted. Hosted tools: `lookup_ioc`, `search_threats`, `get_product`, `get_product_stix`, `search_stix`.
+
+Preflight:
+
+```bash
+truss-mcp doctor --remote --strict-claude
+```
+
+## Legacy: local stdio (air-gap)
+
+See [../config/claude_desktop_config.stdio.json](../config/claude_desktop_config.stdio.json):
 
 ```json
 {
@@ -26,10 +50,6 @@ See [../config/claude_desktop_config.json](../config/claude_desktop_config.json)
 
 After global install, use `"command": "truss-mcp"` and `"args": ["mcp"]`.
 
-## Restart Claude Desktop
-
-Fully quit and reopen the app so stdio MCP servers restart.
-
 ## Verify
 
-In a new chat, ask Claude to list Truss MCP tools or run a small `search_products` query with a narrow filter.
+Ask Claude to list Truss MCP tools or run a small hosted `search_threats` query. For stdio legacy, use `search_products` with a narrow FilterQL expression.

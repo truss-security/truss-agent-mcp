@@ -1,6 +1,8 @@
 # MCP tool catalog
 
-Server: `truss-mcp` · Transport: stdio · Tools: **7**
+Server: `truss-mcp mcp` (local stdio) · Transport: stdio · Tools: **7**
+
+> **Registries / Cursor / Claude (recommended):** use the **hosted** five-tool surface at `https://api.truss-security.com/mcp` — see [05 — Hosted MCP OAuth](./05-hosted-mcp-oauth-architecture.md). This catalog describes the **legacy local stdio** tools only.
 
 ## Behavior (embedded in server instructions)
 

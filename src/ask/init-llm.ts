@@ -107,7 +107,10 @@ export function needsLlmSetup(values: Map<string, string>): boolean {
   return modelMissing || keyMissing;
 }
 
+/** Remote OAuth token or legacy API key, plus LLM provider keys. */
 export function isFullyConfigured(values: Map<string, string>): boolean {
-  if (!values.get('TRUSS_API_KEY')?.trim()) return false;
+  const hasRemote = Boolean(values.get('TRUSS_MCP_OAUTH_TOKEN_FILE')?.trim());
+  const hasStdio = Boolean(values.get('TRUSS_API_KEY')?.trim());
+  if (!hasRemote && !hasStdio) return false;
   return !needsLlmSetup(values);
 }

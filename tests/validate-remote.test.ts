@@ -10,6 +10,7 @@ import {
   canonicalizeResourceUrl,
   parseSearchThreatsToolResult,
   parseValidateRemoteOptions,
+  parseDoctorRemoteOptions,
 } from '../src/remote/validate-remote.js';
 
 describe('canonicalizeResourceUrl', () => {
@@ -191,7 +192,32 @@ describe('parseValidateRemoteOptions', () => {
     assert.equal(options.openBrowser, false);
   });
 
-  it('rejects missing URL', () => {
-    assert.throws(() => parseValidateRemoteOptions(['node', 'truss-mcp', 'validate-remote']));
+  it('defaults URL to production hosted MCP when omitted', () => {
+    const prev = process.env.TRUSS_MCP_URL;
+    delete process.env.TRUSS_MCP_URL;
+    try {
+      const options = parseValidateRemoteOptions(['node', 'truss-mcp', 'validate-remote', '--strict-claude']);
+      assert.equal(options.mcpUrl, 'https://api.truss-security.com/mcp');
+      assert.equal(options.strictClaude, true);
+    } finally {
+      if (prev === undefined) delete process.env.TRUSS_MCP_URL;
+      else process.env.TRUSS_MCP_URL = prev;
+    }
+  });
+
+  it('parseDoctorRemoteOptions maps doctor --remote flags', () => {
+    const options = parseDoctorRemoteOptions([
+      'node',
+      'truss-mcp',
+      'doctor',
+      '--remote',
+      '--url',
+      'https://api-test.truss-security.com/mcp',
+      '--strict-claude',
+      '--no-open',
+    ]);
+    assert.equal(options.mcpUrl, 'https://api-test.truss-security.com/mcp');
+    assert.equal(options.strictClaude, true);
+    assert.equal(options.openBrowser, false);
   });
 });

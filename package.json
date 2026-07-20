@@ -15,10 +15,13 @@
     "guides/truss-cli.md",
     "guides/getting-started.md",
     "config/cursor.mcp.json",
-    "config/claude_desktop_config.json"
+    "config/cursor.mcp.stdio.json",
+    "config/claude_desktop_config.json",
+    "config/claude_desktop_config.stdio.json",
+    "config/mcp-registry.json"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/truss-cli.js",
     "clean": "rm -rf dist",
     "start": "node dist/truss-cli.js mcp",
     "dev": "tsx src/truss-cli.ts mcp",
