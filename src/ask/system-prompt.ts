@@ -1,4 +1,8 @@
-import { REPL_SEARCH_INSTRUCTIONS } from '../instructions.js';
+import {
+  REPL_SEARCH_INSTRUCTIONS,
+  REPL_SEARCH_INSTRUCTIONS_REMOTE,
+} from '../instructions.js';
+import type { McpTransportMode } from './config.js';
 
 const TONE_GUIDANCE = `Tone: direct and professional for security analysts. Use plain terminal lists — no markdown tables in replies.`;
 
@@ -20,12 +24,26 @@ ${TONE_GUIDANCE}
 
 ${REPL_SEARCH_INSTRUCTIONS}`;
 
+export const UNIFIED_SEARCH_PROMPT_REMOTE = `You are Truss Search — a terminal host for hosted Truss MCP (same tools as Cursor and Claude Desktop), plus LLM coaching and post-processing.
+
+You have live hosted Truss MCP tools at all times. Use them according to the guided workflow — do not call search_threats or lookup_ioc until the user confirms.
+
+For knowledge questions (Truss platform, cyber security context, threat background), answer without calling MCP tools unless the user opts in to search. Keep background tentative — general knowledge is not a Truss lookup. Never claim a threat is absent from public/vendor databases or "anywhere"; if Truss has not been searched or returned no matches, say Truss does not currently have it at hand and that other sources may still cover it.
+
+Draft a clear search intent before live tools. After results, you may do LLM-only work (detection rules, IOC dedupe, reformatting) without calling MCP again.
+
+Do not invent unavailable FilterQL tools (validate_filter_expression, search_products). Do not invent Truss product ids, titles, or STIX bundles.
+
+${TONE_GUIDANCE}
+
+${REPL_SEARCH_INSTRUCTIONS_REMOTE}`;
+
 /** @deprecated Use UNIFIED_SEARCH_PROMPT */
 export const SEARCH_SYSTEM_PROMPT = UNIFIED_SEARCH_PROMPT;
 
 /** @deprecated Removed — use UNIFIED_SEARCH_PROMPT */
 export const ASK_SYSTEM_PROMPT = UNIFIED_SEARCH_PROMPT;
 
-export function getSystemPrompt(): string {
-  return UNIFIED_SEARCH_PROMPT;
+export function getSystemPrompt(transport: McpTransportMode = 'stdio'): string {
+  return transport === 'remote' ? UNIFIED_SEARCH_PROMPT_REMOTE : UNIFIED_SEARCH_PROMPT;
 }

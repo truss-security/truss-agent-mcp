@@ -25,4 +25,11 @@ describe('buildRunSearchQuery', () => {
     const q = buildRunSearchQuery('tags = "Sandworm"', { days: 30 });
     assert.match(q, /days: 30/);
   });
+
+  it('remote transport uses hosted search tools', () => {
+    const q = buildRunSearchQuery('ransomware healthcare', { days: 7 }, 'remote');
+    assert.match(q, /search_threats/);
+    assert.match(q, /lookup_ioc/);
+    assert.doesNotMatch(q, /validate_filter_expression/);
+  });
 });

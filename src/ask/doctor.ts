@@ -1,10 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { readEnvFile } from '../lib/env-file.js';
 import { describeEnvKey, listEnvFilePaths, loadMergedEnvFile } from '../lib/env-sources.js';
+import {
+  defaultMcpUrlFromEnv,
+  parseDoctorRemoteOptions,
+  runValidateRemote,
+} from '../remote/validate-remote.js';
 import { getProvider } from './providers/catalog.js';
 import { resolveLlmFromEnv } from './providers/resolve.js';
 import { resolveServerCliPath } from './resolve-server-path.js';
@@ -19,7 +23,18 @@ function check(name: string, ok: boolean, detail: string): CheckResult {
   return { name, ok, detail };
 }
 
-export async function runDoctor(fromModuleUrl?: string): Promise<number> {
+export function wantsRemoteDoctor(argv: string[] = process.argv): boolean {
+  return argv.includes('--remote');
+}
+
+export async function runDoctor(fromModuleUrl?: string, argv: string[] = process.argv): Promise<number> {
+  if (wantsRemoteDoctor(argv)) {
+    console.log('Truss MCP doctor — remote OAuth path (hosted MCP)\n');
+    console.log(`  Default URL: ${defaultMcpUrlFromEnv()}`);
+    console.log('  Tip: pass --url, --strict-claude, --verbose, --save-token, --token-file\n');
+    return runValidateRemote(parseDoctorRemoteOptions(argv));
+  }
+
   const results: CheckResult[] = [];
   const envFiles = loadMergedEnvFile();
   const envPaths = listEnvFilePaths();
@@ -144,7 +159,8 @@ export async function runDoctor(fromModuleUrl?: string): Promise<number> {
     }
   }
 
-  console.log('Truss MCP doctor\n');
+  console.log('Truss MCP doctor — local stdio / REST keys\n');
+  console.log('  For hosted OAuth (Cursor/Claude): truss-mcp doctor --remote [--strict-claude]\n');
   for (const r of results) {
     const icon = r.ok ? '✓' : '✗';
     console.log(`  ${icon} ${r.name}: ${r.detail}`);

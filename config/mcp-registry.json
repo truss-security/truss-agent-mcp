@@ -1,0 +1,40 @@
+{
+  "name": "truss-mcp",
+  "title": "Truss Threat Intelligence",
+  "description": "Query Truss threat intelligence products via hosted MCP (OAuth). Growth, Scale, and Enterprise plans.",
+  "homepage": "https://truss-security.com",
+  "documentation": "https://github.com/truss-security/truss-agent-mcp/blob/main/docs/05-hosted-mcp-oauth-architecture.md",
+  "repository": "https://github.com/truss-security/truss-agent-mcp",
+  "version": "1.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.truss-security.com/mcp"
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "resource": "https://api.truss-security.com/mcp",
+    "protectedResourceMetadata": "https://api.truss-security.com/.well-known/oauth-protected-resource"
+  },
+  "tools": [
+    "lookup_ioc",
+    "search_threats",
+    "get_product",
+    "get_product_stix",
+    "search_stix"
+  ],
+  "eligibility": {
+    "plans": ["growth", "scale", "enterprise"],
+    "community": false
+  },
+  "legacy": {
+    "stdio": {
+      "package": "@truss-security/truss-agent-mcp",
+      "command": "npx",
+      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
+      "env": ["TRUSS_API_KEY"],
+      "note": "Air-gap / BYO-key only. Prefer remotes[0] for Cursor, Claude, and registries."
+    }
+  }
+}
