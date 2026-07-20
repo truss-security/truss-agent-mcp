@@ -39,12 +39,18 @@ export interface AskConfig {
   oauthTokenFile?: string;
 }
 
-function resolveMcpTransport(): McpTransportMode {
+/**
+ * Prefer hosted OAuth (Cursor/Claude parity). Legacy stdio only when:
+ * - TRUSS_MCP_TRANSPORT=stdio, or
+ * - TRUSS_API_KEY is set and no OAuth token file / remote transport.
+ */
+export function resolveMcpTransport(): McpTransportMode {
   const explicit = process.env.TRUSS_MCP_TRANSPORT?.trim().toLowerCase();
   if (explicit === 'remote') return 'remote';
   if (explicit === 'stdio') return 'stdio';
   if (process.env.TRUSS_MCP_OAUTH_TOKEN_FILE?.trim()) return 'remote';
-  return 'stdio';
+  if (process.env.TRUSS_API_KEY?.trim()) return 'stdio';
+  return 'remote';
 }
 
 export function loadAskConfig(fromModuleUrl?: string): AskConfig {
@@ -54,7 +60,11 @@ export function loadAskConfig(fromModuleUrl?: string): AskConfig {
 
   if (mcpTransport === 'remote' && !oauthTokenFile) {
     throw new Error(
-      'Remote MCP search requires TRUSS_MCP_OAUTH_TOKEN_FILE (Bearer token from: truss-mcp validate-remote --save-token PATH).'
+      'Remote MCP search (default) requires TRUSS_MCP_OAUTH_TOKEN_FILE.\n' +
+        '  1. truss-mcp doctor --remote --save-token /tmp/truss-mcp-token\n' +
+        '  2. Set TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token in .env\n' +
+        '  3. truss-mcp search\n' +
+        'Legacy air-gap: set TRUSS_MCP_TRANSPORT=stdio and TRUSS_API_KEY.'
     );
   }
 

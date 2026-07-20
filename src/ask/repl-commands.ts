@@ -1,6 +1,7 @@
 import type { ColorMode } from '../lib/terminal-theme.js';
 import type { SearchWindow } from './search-window.js';
 import { formatSearchWindow, parseSearchWindowArg } from './search-window.js';
+import type { McpTransportMode } from './config.js';
 
 export type ReplInput =
   | { type: 'exit' }
@@ -122,8 +123,31 @@ export function buildPendingFilterHint(windowLabel: string, quotaNote: boolean):
 
 export function buildStixQuery(
   filterExpression: string | undefined,
-  hasQueryResults: boolean
+  hasQueryResults: boolean,
+  transport: McpTransportMode = 'stdio'
 ): string {
+  if (transport === 'remote') {
+    if (filterExpression) {
+      return (
+        `Export Truss search results as STIX for this search intent:\n` +
+        `${filterExpression}\n` +
+        `Call search_stix (or get_product_stix for a specific product id). ` +
+        `Summarize object counts from the bundle when available.`
+      );
+    }
+    if (hasQueryResults) {
+      return (
+        'Export the most recent Truss search results from this conversation as STIX. ' +
+        'Use search_stix with the last search intent from the thread, ' +
+        'or get_product_stix for a specific product id the user mentioned.'
+      );
+    }
+    return (
+      'The user wants STIX output but no search intent or prior results are available. ' +
+      'Ask them to confirm a search first, or specify a product id.'
+    );
+  }
+
   if (filterExpression) {
     return (
       `Export Truss search results as STIX using this filterExpression exactly:\n` +

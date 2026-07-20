@@ -57,10 +57,19 @@ describe('loadAskConfig', () => {
     }
   });
 
-  it('throws when TRUSS_API_KEY is missing', async () => {
+  it('throws when TRUSS_API_KEY is missing for stdio', async () => {
     delete process.env.TRUSS_API_KEY;
+    process.env.TRUSS_MCP_TRANSPORT = 'stdio';
     const { loadAskConfig } = await import('../src/ask/config.ts');
     assert.throws(() => loadAskConfig(), /TRUSS_API_KEY is required/);
+  });
+
+  it('throws remote setup guidance when no token and no API key', async () => {
+    delete process.env.TRUSS_API_KEY;
+    delete process.env.TRUSS_MCP_OAUTH_TOKEN_FILE;
+    delete process.env.TRUSS_MCP_TRANSPORT;
+    const { loadAskConfig } = await import('../src/ask/config.ts');
+    assert.throws(() => loadAskConfig(), /TRUSS_MCP_OAUTH_TOKEN_FILE/);
   });
 
   it('throws when Anthropic API key is missing', async () => {
@@ -101,6 +110,14 @@ describe('loadAskConfig', () => {
     delete process.env.TRUSS_MCP_OAUTH_TOKEN_FILE;
     const { loadAskConfig } = await import('../src/ask/config.ts');
     assert.throws(() => loadAskConfig(), /TRUSS_MCP_OAUTH_TOKEN_FILE/);
+  });
+
+  it('respects explicit stdio transport with API key', async () => {
+    process.env.TRUSS_MCP_TRANSPORT = 'stdio';
+    process.env.TRUSS_MCP_OAUTH_TOKEN_FILE = '/tmp/truss-mcp-token';
+    const { loadAskConfig } = await import('../src/ask/config.ts');
+    const config = loadAskConfig(import.meta.url);
+    assert.equal(config.mcpTransport, 'stdio');
   });
 
   it('respects LLM_MODEL override', async () => {

@@ -1,31 +1,32 @@
 # Terminal REPL (`truss-mcp search`)
 
-Interactive assistant with a guided workflow. MCP tools are always connected; the assistant asks before querying Truss API.
+Interactive assistant that acts like an embedded Cursor/Claude host: connects to **hosted MCP** (five tools), then uses your LLM for coaching and post-processing. The assistant asks before querying Truss.
 
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `truss-mcp init` | API keys, LLM provider, model |
-| `truss-mcp doctor` | Validate local keys / REST |
+| `truss-mcp init` | OAuth token path / legacy key, LLM provider, model |
+| `truss-mcp doctor` | Validate local keys / REST (legacy) |
 | `truss-mcp doctor --remote` | Hosted OAuth doctor (registry gate) |
 | `truss-mcp validate-remote [url]` | Same as doctor --remote |
 | `truss-mcp search` | Guided Truss search REPL (MCP tools on) |
 | `truss-mcp mcp` | Local stdio server (legacy / air-gap) |
 | `truss-mcp help` | Usage |
 
-**Prerequisites (local stdio):** `TRUSS_API_KEY` and LLM key per `LLM_PROVIDER`.
-
-**Prerequisites (remote OAuth parity):** save a token, then point the REPL at hosted MCP:
+**Prerequisites (remote OAuth — default):** Growth+ account, LLM key, and a Bearer token file:
 
 ```bash
-truss-mcp validate-remote --save-token /tmp/truss-mcp-token
-TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token truss-mcp search
+truss-mcp doctor --remote --save-token /tmp/truss-mcp-token
+# set TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token in .env
+truss-mcp search
 ```
+
+**Prerequisites (legacy stdio):** `TRUSS_MCP_TRANSPORT=stdio`, `TRUSS_API_KEY`, and LLM key per `LLM_PROVIDER`.
 
 Optional: `TRUSS_MCP_URL` (default `https://api.truss-security.com/mcp`), `TRUSS_MCP_TRANSPORT=remote|stdio`.
 
-Remote search uses the **hosted** five-tool catalog (`search_threats`, …). Local stdio uses the seven FilterQL tools.
+Remote search uses the **hosted** five-tool catalog (`lookup_ioc`, `search_threats`, `get_product`, `get_product_stix`, `search_stix`). Local stdio uses the seven FilterQL tools.
 
 ## Guided workflow
 
@@ -33,14 +34,14 @@ The assistant classifies each turn and offers next steps:
 
 | Intent | Behavior |
 |--------|----------|
-| Knowledge | Answer Truss/cyber context without API calls; offer to build a filter |
-| Filter build/refine | Draft FilterQL, validate; offer refine and query |
-| Query execute | `run` or explicit consent → Truss API search |
+| Knowledge | Answer Truss/cyber context without API calls; offer to build a search |
+| Search build/refine | Draft intent (remote) or FilterQL (stdio); offer refine and query |
+| Query execute | `run` or explicit consent → Truss MCP tools |
 | Format output | JSON summary or `stix` for STIX bundle |
-| Detection rules | `detect <platform>` — Splunk, Falcon, Cortex, Sentinel, Sigma |
+| Detection rules | `detect <platform>` — Splunk, Falcon, Cortex, Sentinel, Sigma (LLM only) |
 | Context-only | Process prior results (IOC dedupe, reformat) without re-querying |
 
-Truss-first: FilterQL on `tags`, `category`, `source`, and nine other attributes. External/OSINT only after the Truss path.
+Truss-first: use hosted tools (or FilterQL on stdio). External/OSINT only after the Truss path.
 
 ## Typical workflow
 

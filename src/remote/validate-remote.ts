@@ -610,10 +610,11 @@ function waitForCallback(port: number, expectedState: string): Promise<{ code: s
         reject(
           new Error(
             `Timed out waiting for OAuth callback at ${callbackUrl}.\n` +
-              'Login alone is not enough — after signing in you must open the consent page and click Approve.\n' +
+              'Login alone is not enough — after signing in, complete MFA if prompted, then open /oauth/consent.\n' +
+              'Growth+ accounts must click Allow access. Community accounts are auto-denied (access_denied) so the client does not hang.\n' +
               'Then the browser should redirect to 127.0.0.1 (this CLI). If you landed on the main dashboard,\n' +
-              'Ctrl+C and re-run; complete Approve before navigating away.\n' +
-              'Community plans cannot Approve (Growth+ required).'
+              'Ctrl+C and re-run; finish consent before navigating away.\n' +
+              'Community plans cannot use MCP (Growth+ required).'
           )
         );
       });
@@ -621,7 +622,7 @@ function waitForCallback(port: number, expectedState: string): Promise<{ code: s
 
     const heartbeat = setInterval(() => {
       logInfo(
-        `Still waiting for browser redirect to ${callbackUrl} (Approve MCP access in the Truss dashboard if prompted)…`
+        `Still waiting for browser redirect to ${callbackUrl} (complete MFA if needed, then Allow access on /oauth/consent — Community is auto-denied)…`
       );
     }, 15_000);
 
@@ -698,8 +699,8 @@ function waitForCallback(port: number, expectedState: string): Promise<{ code: s
 
     server.listen(port, '127.0.0.1', () => {
       logOk(`Listening for OAuth callback at ${callbackUrl}`);
-      logInfo('After login, open the consent screen and click Approve for “Truss MCP Remote OAuth Validator”.');
-      logInfo('The browser must redirect back to 127.0.0.1 — leave this terminal running until then.');
+      logInfo('After login, complete MFA if enrolled, then Allow access on /oauth/consent for “Truss MCP Remote OAuth Validator”.');
+      logInfo('Community accounts are auto-denied (Growth+ required). Leave this terminal running until the browser redirects.');
     });
   });
 }
@@ -999,7 +1000,7 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
   logInfo(`Opening browser for OAuth login and consent: ${url}`);
   logInfo('Token storage: in-memory for this process only (not written to the dashboard).');
   logInfo(
-    `Waiting on ${redirectUri} — steps: (1) sign in (2) Approve on /oauth/consent (3) browser returns here.`
+    `Waiting on ${redirectUri} — steps: (1) sign in + MFA if enrolled (2) Allow access on /oauth/consent — Community auto-denies (3) browser returns here.`
   );
   if (options.openBrowser) {
     openBrowser(url);

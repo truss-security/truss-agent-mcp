@@ -11,8 +11,8 @@ Dependent work **outside** this package so product truth stays consistent. Track
 
 ## truss-dashboard
 
-- [ ] Agent MCP tab: show **remote OAuth URL** config first (`https://api.truss-security.com/mcp`)
-- [ ] Demote stdio + `TRUSS_API_KEY` samples to “legacy / air-gap”
+- [x] Agent MCP tab: show **remote OAuth URL** config first (`https://api.truss-security.com/mcp`)
+- [x] Demote stdio + `TRUSS_API_KEY` samples to “legacy / air-gap”
 - [x] `/oauth/consent` Growth+ gate (`planRank >= growth`)
 - [x] Community (ineligible) consent **auto-denies** and redirects client with OAuth error (no hang)
 
