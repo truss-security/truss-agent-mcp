@@ -68,6 +68,16 @@ export type ChecklistItem = {
 const DEFAULT_REDIRECT_PORT = 9876;
 const VERBOSE_BODY_LIMIT = 600;
 
+/** Canonical production hosted MCP URL (Cursor / Claude / registries). */
+export const DEFAULT_PROD_MCP_URL = 'https://api.truss-security.com/mcp';
+
+/** Default test hosted MCP URL. */
+export const DEFAULT_TEST_MCP_URL = 'https://api-test.truss-security.com/mcp';
+
+export function defaultMcpUrlFromEnv(): string {
+  return (process.env.TRUSS_MCP_URL?.trim() || DEFAULT_PROD_MCP_URL).replace(/\/+$/, '');
+}
+
 function logOk(message: string): void {
   console.log(`✓ ${message}`);
 }
@@ -580,24 +590,70 @@ async function registerClient(
 }
 
 function waitForCallback(port: number, expectedState: string): Promise<{ code: string; state: string }> {
+  const callbackUrl = `http://127.0.0.1:${port}/callback`;
+
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const timeoutMs = 180_000;
+
+    const finish = (fn: () => void): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      clearInterval(heartbeat);
+      fn();
+    };
+
     const timeout = setTimeout(() => {
-      server.close();
-      reject(new Error('Timed out waiting for OAuth callback.'));
-    }, 180_000);
+      finish(() => {
+        server.close();
+        reject(
+          new Error(
+            `Timed out waiting for OAuth callback at ${callbackUrl}.\n` +
+              'Login alone is not enough — after signing in you must open the consent page and click Approve.\n' +
+              'Then the browser should redirect to 127.0.0.1 (this CLI). If you landed on the main dashboard,\n' +
+              'Ctrl+C and re-run; complete Approve before navigating away.\n' +
+              'Community plans cannot Approve (Growth+ required).'
+          )
+        );
+      });
+    }, timeoutMs);
+
+    const heartbeat = setInterval(() => {
+      logInfo(
+        `Still waiting for browser redirect to ${callbackUrl} (Approve MCP access in the Truss dashboard if prompted)…`
+      );
+    }, 15_000);
 
     const server = createServer((req: IncomingMessage, res: ServerResponse) => {
       try {
         const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+        if (url.pathname === '/' || url.pathname === '') {
+          res.statusCode = 200;
+          res.setHeader('content-type', 'text/plain');
+          res.end(
+            `Truss MCP OAuth callback listener is running.\nExpected path: ${callbackUrl}\nKeep this terminal open until the doctor finishes.`
+          );
+          return;
+        }
         if (url.pathname !== '/callback') {
           res.statusCode = 404;
-          res.end('Not found');
+          res.end(`Not found. OAuth redirect must hit ${callbackUrl}`);
           return;
         }
 
+        logInfo(`OAuth callback received: ${url.pathname}${url.search ? ' (with query)' : ''}`);
+
         const error = url.searchParams.get('error');
         if (error) {
-          throw new Error(`OAuth error: ${error} ${url.searchParams.get('error_description') ?? ''}`.trim());
+          const description = (url.searchParams.get('error_description') ?? '').trim();
+          const communityHint =
+            error === 'access_denied'
+              ? ' If this is a Community account, MCP requires Growth or above — upgrade or use a Growth+ test user.'
+              : '';
+          throw new Error(
+            `OAuth error: ${error}${description ? ` ${description}` : ''}.${communityHint}`.trim()
+          );
         }
 
         const code = url.searchParams.get('code');
@@ -614,20 +670,37 @@ function waitForCallback(port: number, expectedState: string): Promise<{ code: s
         res.end(
           'Truss MCP OAuth authorization code received. Return to the terminal for the final validation result. This page does not store tokens.'
         );
-        clearTimeout(timeout);
-        server.close();
-        resolve({ code, state });
+        finish(() => {
+          server.close();
+          resolve({ code, state });
+        });
       } catch (err) {
         res.statusCode = 400;
         res.setHeader('content-type', 'text/plain');
         res.end(err instanceof Error ? err.message : 'OAuth callback failed.');
-        clearTimeout(timeout);
-        server.close();
-        reject(err);
+        finish(() => {
+          server.close();
+          reject(err);
+        });
       }
     });
 
-    server.listen(port, '127.0.0.1');
+    server.on('error', (err) => {
+      finish(() => {
+        reject(
+          new Error(
+            `Could not listen on ${callbackUrl}: ${err instanceof Error ? err.message : String(err)}. ` +
+              'Try --port 9877 if something else is using 9876.'
+          )
+        );
+      });
+    });
+
+    server.listen(port, '127.0.0.1', () => {
+      logOk(`Listening for OAuth callback at ${callbackUrl}`);
+      logInfo('After login, open the consent screen and click Approve for “Truss MCP Remote OAuth Validator”.');
+      logInfo('The browser must redirect back to 127.0.0.1 — leave this terminal running until then.');
+    });
   });
 }
 
@@ -925,6 +998,9 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
 
   logInfo(`Opening browser for OAuth login and consent: ${url}`);
   logInfo('Token storage: in-memory for this process only (not written to the dashboard).');
+  logInfo(
+    `Waiting on ${redirectUri} — steps: (1) sign in (2) Approve on /oauth/consent (3) browser returns here.`
+  );
   if (options.openBrowser) {
     openBrowser(url);
   } else {
@@ -987,12 +1063,17 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
 }
 
 export function parseValidateRemoteOptions(argv: string[]): ValidationOptions {
-  const mcpUrl = argv[3];
-  if (!mcpUrl || mcpUrl.startsWith('-')) {
-    throw new Error(
-      'Usage: truss-mcp validate-remote <https://.../mcp> [--verbose] [--strict-claude] [--save-token PATH] [--token-file PATH] [--no-open] [--port 9876]'
-    );
-  }
+  const positional = argv[3];
+  const urlFlagIndex = argv.findIndex((arg) => arg === '--url');
+  const urlFromFlag =
+    urlFlagIndex >= 0 && argv[urlFlagIndex + 1] && !argv[urlFlagIndex + 1].startsWith('-')
+      ? argv[urlFlagIndex + 1]
+      : undefined;
+
+  const mcpUrl =
+    urlFromFlag ??
+    (positional && !positional.startsWith('-') ? positional : undefined) ??
+    defaultMcpUrlFromEnv();
 
   const portArgIndex = argv.findIndex((arg) => arg === '--port');
   const port =
@@ -1021,4 +1102,13 @@ export function parseValidateRemoteOptions(argv: string[]): ValidationOptions {
     saveTokenPath,
     tokenFilePath,
   };
+}
+
+/**
+ * `truss-mcp doctor --remote` delegates to validate-remote with the same flags.
+ * Usage: truss-mcp doctor --remote [--url URL] [--strict-claude] [--verbose] …
+ */
+export function parseDoctorRemoteOptions(argv: string[]): ValidationOptions {
+  const rest = argv.filter((arg, index) => index < 2 || (arg !== 'doctor' && arg !== '--remote'));
+  return parseValidateRemoteOptions([rest[0] ?? 'node', rest[1] ?? 'truss-mcp', 'validate-remote', ...rest.slice(2)]);
 }

@@ -1,6 +1,17 @@
 # Reference server architecture
 
-## Process model
+## Two surfaces
+
+| Surface | When to use | Auth |
+|---------|-------------|------|
+| **Remote (recommended)** | Cursor, Claude Desktop, MCP registries | OAuth → `https://api.truss-security.com/mcp` |
+| **Local stdio (legacy / air-gap)** | Offline, BYO-key, FilterQL-oriented tools | `TRUSS_API_KEY` → REST |
+
+Remote architecture, OAuth, and hosted tools: [05 — Hosted MCP OAuth](./05-hosted-mcp-oauth-architecture.md).
+
+This document describes the **local stdio** process model shipped in this package.
+
+## Process model (local stdio)
 
 ```
 MCP host (Cursor / Claude Desktop)
@@ -9,24 +20,27 @@ MCP host (Cursor / Claude Desktop)
 truss-agent-mcp (Node ≥18, ESM)
     │ @truss-security/truss-sdk
     ▼
-Truss API (API Gateway + Lambda)
+Truss API REST (API Gateway + Lambda)
 ```
 
 ## Entry points
 
 | File | Role |
 |------|------|
-| `src/truss-cli.ts` | CLI bin `truss-mcp` (`mcp`, `search`, `ask`, …) |
+| `src/truss-cli.ts` | CLI bin `truss-mcp` (`mcp`, `search`, `validate-remote`, …) |
 | `src/server.ts` | Builds `McpServer`, registers tools, connects stdio transport |
+| `src/remote/validate-remote.ts` | OAuth + hosted MCP doctor |
 
-## Configuration
+## Configuration (local stdio / CLI)
 
 Loaded from environment at startup (see `env.example`):
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `TRUSS_API_KEY` | — | Required |
-| `TRUSS_API_URL` | `https://api.truss-security.com` | API base |
+| `TRUSS_API_KEY` | — | Required for local stdio and default CLI search |
+| `TRUSS_API_URL` | `https://api.truss-security.com` | REST API base |
+| `TRUSS_MCP_URL` | `https://api.truss-security.com/mcp` | Hosted MCP URL (remote CLI / doctor) |
+| `TRUSS_MCP_OAUTH_TOKEN_FILE` | — | Bearer token file for remote CLI search |
 | `TRUSS_MCP_MAX_LIMIT` | `50` | Per-request limit cap |
 | `TRUSS_MCP_MAX_PAGES` | `3` | Max pages for iterate tool |
 | `TRUSS_MCP_DEBOUNCE_MS` | `200` | Min gap between API calls in one session |
@@ -47,8 +61,9 @@ A simple in-process timestamp gate reduces burst tool calls from enthusiastic LL
 
 ## Security
 
-- API key only in server env (MCP host config `env` block)
-- Never log `getConfig().apiKey`
+- API key only in server env (MCP host config `env` block) for local stdio
+- Prefer remote OAuth for interactive hosts so keys never sit in `mcp.json`
+- Never log `getConfig().apiKey` or full OAuth tokens
 - Tool responses avoid raw IOC values by default
 
 ## Dependencies

@@ -31,7 +31,7 @@ async function main(): Promise<void> {
   }
 
   if (command === 'doctor') {
-    const code = await runDoctor();
+    const code = await runDoctor(undefined, process.argv);
     process.exit(code);
   }
 

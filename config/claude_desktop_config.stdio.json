@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "command": "npx",
+      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
+      "env": {
+        "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY",
+        "TRUSS_API_URL": "https://api.truss-security.com"
+      }
+    }
+  }
+}

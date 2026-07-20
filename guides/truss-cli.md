@@ -7,12 +7,25 @@ Interactive assistant with a guided workflow. MCP tools are always connected; th
 | Command | Purpose |
 |---------|---------|
 | `truss-mcp init` | API keys, LLM provider, model |
-| `truss-mcp doctor` | Validate configuration |
+| `truss-mcp doctor` | Validate local keys / REST |
+| `truss-mcp doctor --remote` | Hosted OAuth doctor (registry gate) |
+| `truss-mcp validate-remote [url]` | Same as doctor --remote |
 | `truss-mcp search` | Guided Truss search REPL (MCP tools on) |
-| `truss-mcp mcp` | stdio server for MCP hosts |
+| `truss-mcp mcp` | Local stdio server (legacy / air-gap) |
 | `truss-mcp help` | Usage |
 
-**Prerequisites:** `TRUSS_API_KEY` and LLM key per `LLM_PROVIDER`.
+**Prerequisites (local stdio):** `TRUSS_API_KEY` and LLM key per `LLM_PROVIDER`.
+
+**Prerequisites (remote OAuth parity):** save a token, then point the REPL at hosted MCP:
+
+```bash
+truss-mcp validate-remote --save-token /tmp/truss-mcp-token
+TRUSS_MCP_OAUTH_TOKEN_FILE=/tmp/truss-mcp-token truss-mcp search
+```
+
+Optional: `TRUSS_MCP_URL` (default `https://api.truss-security.com/mcp`), `TRUSS_MCP_TRANSPORT=remote|stdio`.
+
+Remote search uses the **hosted** five-tool catalog (`search_threats`, …). Local stdio uses the seven FilterQL tools.
 
 ## Guided workflow
 
