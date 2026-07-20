@@ -16,16 +16,19 @@ If you discover a security issue in `truss-agent-mcp`, please report it responsi
 
 ## Credential handling
 
-- **Truss API key** (`TRUSS_API_KEY`) must be set in the MCP host environment or local `.env` file. Never pass API keys in MCP tool arguments or commit them to version control.
-- **LLM API keys** (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) are only required for `truss-mcp search` CLI mode. MCP-only mode (`truss-mcp mcp`) needs only the Truss key.
+- **Remote OAuth (recommended for Cursor / Claude):** no API key in host config. Browser consent; Growth+ only. Prefer this path so keys never sit in `mcp.json`.
+- **Truss API key** (`TRUSS_API_KEY`) for local stdio (`truss-mcp mcp`) or default CLI search. Never pass API keys in MCP tool arguments or commit them to version control.
+- **OAuth tokens** from `validate-remote --save-token` are for local debugging only (mode `0600`); delete after use. Never commit token files.
+- **LLM API keys** (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) are only required for `truss-mcp search` CLI mode.
 - The `truss-mcp doctor` command reports masked key previews (first/last characters only) and never prints full secrets.
 
 ## Data flow
 
 | Mode | Data sent externally |
 | ---- | -------------------- |
-| `truss-mcp mcp` | Queries go to Truss API (`api.truss-security.com`) via your API key. The host LLM handles inference locally. |
-| `truss-mcp search` | User prompts and Truss search results are sent to your configured LLM provider (Anthropic or OpenAI) in addition to Truss API calls. |
+| Host → `https://api.truss-security.com/mcp` | OAuth Bearer to hosted MCP (truss-api). Host LLM stays local to the client. |
+| `truss-mcp mcp` (stdio) | Queries go to Truss REST (`api.truss-security.com`) via your API key. |
+| `truss-mcp search` | User prompts and Truss results go to your LLM provider plus Truss (stdio or remote MCP). |
 
 Product summaries returned by MCP tools omit raw IOC values by default. Full indicators are returned only when `include_indicators: true` is set on a tool call.
 

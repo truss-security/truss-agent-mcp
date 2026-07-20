@@ -23,9 +23,10 @@ description: Develop, test, and release the Truss MCP server and truss-mcp CLI. 
 
 ### Fix MCP host connectivity
 
-- Sample configs: `config/cursor.mcp.json`, `config/claude_desktop_config.json`.
+- **Remote (recommended):** `config/cursor.mcp.json` / `config/claude_desktop_config.json` → `https://api.truss-security.com/mcp` + OAuth.
+- **Legacy stdio:** `config/cursor.mcp.stdio.json`; `TRUSS_API_KEY` in host `env`.
 - Guides: `guides/client-setup-cursor.md`, `guides/client-setup-claude-desktop.md`.
-- Verify: `TRUSS_API_KEY` in host `env` block; `truss-mcp doctor`.
+- Verify remote: `truss-mcp doctor --remote` or `truss-mcp validate-remote … --strict-claude`.
 
 ### Run tests
 
@@ -52,7 +53,8 @@ See `guides/publishing.md`. Tag `v*` → `release.yml` publishes npm package.
 |------|------|
 | MCP server | `src/server.ts` |
 | Local architecture | `docs/01-reference-server-architecture.md` |
-| Hosted MCP (proposal) | `docs/05-hosted-mcp-oauth-architecture.md` |
+| Hosted MCP OAuth | `docs/05-hosted-mcp-oauth-architecture.md` |
+| Remote OAuth doctor | `src/remote/validate-remote.ts` |
 | Tools | `src/tools/register-tools.ts` |
 | API client | `src/client.ts`, `src/config.ts` |
 | CLI REPL | `src/ask/repl.ts` |

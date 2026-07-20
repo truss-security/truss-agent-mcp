@@ -86,7 +86,11 @@ function buildPromptLine(filterReady: boolean): string {
 function printReplHeader(config: AskConfig, toolCount: number): void {
   const providerLabel = getProvider(config.provider)?.label ?? config.provider;
   printHeader(REPL_BANNER);
-  printMeta(`LLM: ${providerLabel} | Model: ${config.model} | Tools: ${toolCount} Truss MCP tools`);
+  const transportLabel =
+    config.mcpTransport === 'remote' ? `remote ${config.mcpUrl}` : 'local stdio';
+  printMeta(
+    `LLM: ${providerLabel} | Model: ${config.model} | Tools: ${toolCount} Truss MCP (${transportLabel})`
+  );
   for (const line of REPL_HELP_LINES) {
     printPlain(line);
   }

@@ -4,14 +4,15 @@ Canonical guide for AI agents working in this repository. **Ignore prior chat co
 
 ## What this repo is
 
-Official Truss **MCP server + CLI** (`truss-mcp`). One Node.js binary, two modes:
+Official Truss **MCP CLI + local stdio server** (`truss-mcp`). Hosted OAuth MCP for Cursor/Claude/registries lives in **truss-api** at `https://api.truss-security.com/mcp`.
 
-| Command | Purpose | Keys required |
-|---------|---------|---------------|
-| `truss-mcp mcp` | stdio MCP server for Cursor / Claude / VS Code | `TRUSS_API_KEY` |
-| `truss-mcp search` | Terminal REPL with LLM + live MCP tools | `TRUSS_API_KEY` + LLM key |
+| Command | Purpose | Keys / auth |
+|---------|---------|-------------|
+| `truss-mcp mcp` | Local stdio MCP (legacy / air-gap) | `TRUSS_API_KEY` |
+| `truss-mcp search` | Terminal REPL with live MCP tools | `TRUSS_API_KEY` **or** remote OAuth token file + LLM key |
 | `truss-mcp init` | Interactive `.env` setup | — |
-| `truss-mcp doctor` | Validate keys and API access | — |
+| `truss-mcp doctor` | Validate keys; `--remote` = hosted OAuth doctor | — |
+| `truss-mcp validate-remote <url>` | OAuth + MCP registry gate | Browser OAuth or `--token-file` |
 
 Package: `@truss-security/truss-agent-mcp` · Node ≥18 · TypeScript ESM (`NodeNext`).
 
@@ -19,14 +20,16 @@ Package: `@truss-security/truss-agent-mcp` · Node ≥18 · TypeScript ESM (`Nod
 
 ```
 src/truss-cli.ts          → entry; routes subcommands
-src/server.ts             → MCP server (stdio)
-src/tools/register-tools.ts + schemas.ts  → seven MCP tools
+src/server.ts             → local MCP server (stdio)
+src/remote/validate-remote.ts → hosted OAuth doctor
+src/tools/register-tools.ts + schemas.ts  → seven local stdio tools
 src/config.ts, client.ts, instructions.ts → MCP config + host instructions
-src/ask/*                 → CLI search REPL only (not MCP runtime logic)
+src/ask/*                 → CLI search REPL only (not hosted MCP runtime)
 src/lib/*                 → shared helpers (mask secrets, FilterQL, summaries)
 ```
 
-MCP data path: host LLM → MCP tools → `@truss-security/truss-sdk` → `https://api.truss-security.com` (public tier only).
+- **Remote (recommended):** host → `https://api.truss-security.com/mcp` (OAuth) — see [docs/05](docs/05-hosted-mcp-oauth-architecture.md)
+- **Local stdio:** host LLM → MCP tools → `@truss-security/truss-sdk` → REST `https://api.truss-security.com`
 
 ## Public API boundary (do not expand without API + SDK work)
 
@@ -73,7 +76,8 @@ npm test
 | [docs/04-mcp-tool-catalog.md](docs/04-mcp-tool-catalog.md) | Tool params and behavior |
 | [docs/02-public-api-contract.md](docs/02-public-api-contract.md) | API auth and routes |
 | [docs/03-filterql-for-llms.md](docs/03-filterql-for-llms.md) | FilterQL grammar |
-| [docs/05-hosted-mcp-oauth-architecture.md](docs/05-hosted-mcp-oauth-architecture.md) | Hosted MCP proposal |
+| [docs/05-hosted-mcp-oauth-architecture.md](docs/05-hosted-mcp-oauth-architecture.md) | Hosted MCP OAuth (canonical remote URL) |
+| [docs/06-cross-repo-oauth-checklist.md](docs/06-cross-repo-oauth-checklist.md) | Dependent PRs in api / dashboard / docs |
 | [guides/getting-started.md](guides/getting-started.md) | Install and MCP host setup |
 | [guides/publishing.md](guides/publishing.md) | npm release |
 | [SECURITY.md](SECURITY.md) | Credentials and data flow |

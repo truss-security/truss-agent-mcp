@@ -1,14 +1,36 @@
 # Cursor MCP setup
 
-## 1. Get an API key
+## Recommended: remote OAuth
 
-Create or copy an API key from the Truss dashboard (Billing / API settings).
+Requires a **Growth, Scale, or Enterprise** Truss account. No API key in Cursor config — the host opens a browser for OAuth consent.
 
-## 2. Add the MCP server
+Open **Cursor Settings → MCP** (or edit `.cursor/mcp.json`). Use [../config/cursor.mcp.json](../config/cursor.mcp.json):
 
-Open **Cursor Settings → MCP** (or edit `.cursor/mcp.json` in your project).
+```json
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "url": "https://api.truss-security.com/mcp"
+    }
+  }
+}
+```
 
-Use the example in [../config/cursor.mcp.json](../config/cursor.mcp.json):
+Test environment: `"url": "https://api-test.truss-security.com/mcp"`.
+
+Reload MCP / the window, approve consent in the browser, then confirm tools appear (`lookup_ioc`, `search_threats`, `get_product`, `get_product_stix`, `search_stix`).
+
+Verify from a terminal:
+
+```bash
+truss-mcp doctor --remote --strict-claude
+```
+
+Architecture: [../docs/05-hosted-mcp-oauth-architecture.md](../docs/05-hosted-mcp-oauth-architecture.md).
+
+## Legacy: local stdio (air-gap)
+
+Only when you cannot use remote OAuth. See [../config/cursor.mcp.stdio.json](../config/cursor.mcp.stdio.json):
 
 ```json
 {
@@ -25,39 +47,13 @@ Use the example in [../config/cursor.mcp.json](../config/cursor.mcp.json):
 }
 ```
 
-After global install:
+After global install: `"command": "truss-mcp"`, `"args": ["mcp"]`.
 
-```json
-{
-  "mcpServers": {
-    "truss-mcp": {
-      "command": "truss-mcp",
-      "args": ["mcp"],
-      "env": { "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY" }
-    }
-  }
-}
-```
+Local clone: `"command": "node"`, `"args": ["/absolute/path/to/truss-agent-mcp/dist/truss-cli.js", "mcp"]`.
 
-For local development from a cloned repo:
+Stdio tools differ from hosted (FilterQL-oriented seven-tool set) — see [../docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
 
-```json
-{
-  "mcpServers": {
-    "truss-mcp": {
-      "command": "node",
-      "args": ["/absolute/path/to/truss-agent-mcp/dist/truss-cli.js", "mcp"],
-      "env": { "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY" }
-    }
-  }
-}
-```
+## Security
 
-## 3. Reload MCP
-
-Restart MCP or reload the window. Confirm `truss-mcp` appears with tools listed in [../docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
-
-## 4. Security
-
-- Do not commit real API keys to git
-- Prefer project-local `mcp.json` with env from your shell or secrets manager where supported
+- Prefer remote OAuth so API keys never sit in `mcp.json`
+- Do not commit real API keys or OAuth tokens to git
