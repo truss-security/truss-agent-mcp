@@ -102,20 +102,20 @@ See [config/cursor.mcp.stdio.json](config/cursor.mcp.stdio.json) and [guides/get
 Use as the OAuth + MCP doctor before registry publish or release. After OAuth it **requires** `search_threats` to return at least one Truss product (`id` + `title`). The access token stays **in memory for that process only** unless you pass `--save-token`.
 
 ```bash
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 # or:
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 # test env:
-truss-mcp validate-remote https://api-test.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api-test.truss-security.com/mcp --strict-oauth
 ```
 
-After token exchange it prints a **Claude connector compatibility checklist** (resource URI, redirects, PKCE S256, issuer match, audience vs MCP resource, `truss_role`), then proves MCP access with real Truss data.
+After token exchange it prints an **OAuth compatibility checklist** (resource URI, redirects, PKCE S256, issuer match, audience vs MCP resource, `truss_role`), then proves MCP access with real Truss data.
 
 Options:
 
 ```bash
 truss-mcp validate-remote https://api.truss-security.com/mcp --verbose
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 truss-mcp validate-remote https://api.truss-security.com/mcp --save-token /tmp/truss-mcp-token
 truss-mcp validate-remote https://api.truss-security.com/mcp --token-file /tmp/truss-mcp-token
 truss-mcp validate-remote https://api.truss-security.com/mcp --port 9877
@@ -123,7 +123,7 @@ truss-mcp validate-remote https://api.truss-security.com/mcp --no-open
 ```
 
 - `--verbose` — HTTP statuses, key headers, truncated bodies (tokens redacted)
-- `--strict-claude` — exit `2` if the Claude checklist has WARN/FAIL (even when Truss MCP calls succeed)
+- `--strict-oauth` — exit `2` if the OAuth checklist has WARN/FAIL (even when Truss MCP calls succeed)
 - `--save-token PATH` — write the access token for local replay (mode `0600`; delete after debugging)
 - `--token-file PATH` — skip browser OAuth; reuse a saved token to re-check MCP access + Truss data
 

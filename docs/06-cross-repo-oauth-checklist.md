@@ -38,9 +38,9 @@ Dependent work **outside** this package so product truth stays consistent. Track
 ## Verify before registry publish
 
 ```bash
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 # equivalent:
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 ```
 
 ---
