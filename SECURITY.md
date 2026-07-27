@@ -26,7 +26,7 @@ If you discover a security issue in `truss-agent-mcp`, please report it responsi
 
 | Mode | Data sent externally |
 | ---- | -------------------- |
-| Host → `https://api.truss-security.com/mcp` | OAuth Bearer to hosted MCP (truss-api). Host LLM stays local to the client. |
+| Host → `https://api.truss-security.com/mcp` | OAuth Bearer to hosted MCP (Truss API). Host LLM stays local to the client. |
 | `truss-mcp mcp` (stdio) | Queries go to Truss REST (`api.truss-security.com`) via your API key. |
 | `truss-mcp search` | User prompts and Truss results go to your LLM provider plus Truss (stdio or remote MCP). |
 

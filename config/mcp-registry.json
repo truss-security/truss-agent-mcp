@@ -1,10 +1,11 @@
 {
-  "name": "truss-mcp",
+  "name": "com.truss-security/truss-mcp",
   "title": "Truss Threat Intelligence",
-  "description": "Query Truss threat intelligence products via hosted MCP (OAuth). Growth, Scale, and Enterprise plans.",
-  "homepage": "https://truss-security.com",
+  "description": "Query Truss threat intelligence via hosted MCP (OAuth). Growth+ plans.",
+  "homepage": "https://truss-security.com/mcp",
   "documentation": "https://github.com/truss-security/truss-agent-mcp/blob/main/docs/05-hosted-mcp-oauth-architecture.md",
   "repository": "https://github.com/truss-security/truss-agent-mcp",
+  "officialServerJson": "server.json",
   "version": "1.1.0",
   "remotes": [
     {
