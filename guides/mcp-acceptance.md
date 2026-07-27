@@ -115,4 +115,4 @@ Process waits on stdio (no immediate exit).
 | 403 | Verify key tier in Truss dashboard |
 | Server exits | Set `TRUSS_API_KEY` in host `env`, not tool args |
 
-Security red-team tests: [truss-testing/mcpAgentTesting](https://github.com/truss-security/truss-testing/tree/main/mcpAgentTesting)
+Report security issues per [SECURITY.md](../SECURITY.md). Use the acceptance tables above to verify hosted or stdio tools in your MCP host.

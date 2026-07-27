@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "truss-mcp": {
+      "url": "https://api.truss-security.com/mcp"
+    }
+  }
+}
