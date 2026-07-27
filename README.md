@@ -9,7 +9,7 @@ Truss threat intelligence via **[Model Context Protocol](https://modelcontextpro
 | **Remote (recommended)** | Cursor, Claude Desktop, MCP registries | OAuth → [`https://api.truss-security.com/mcp`](https://api.truss-security.com/mcp) |
 | **Local stdio (legacy)** | Air-gap / BYO-key / FilterQL REPL tools | `TRUSS_API_KEY` → REST |
 
-Hosted MCP (OAuth, Growth+ gate, five tools) is owned by **truss-api**. This package ships configs, `validate-remote` / `doctor --remote`, CLI search, and optional local stdio.
+Hosted MCP (OAuth, Growth+ gate, five tools) is served by the Truss API. This package ships configs, `validate-remote` / `doctor --remote`, CLI search, and optional local stdio.
 
 > **Not on npm yet.** Install from this repo (`npm install -g .`). After publish: `npm install -g @truss-security/truss-agent-mcp`.
 
@@ -102,20 +102,18 @@ See [config/cursor.mcp.stdio.json](config/cursor.mcp.stdio.json) and [guides/get
 Use as the OAuth + MCP doctor before registry publish or release. After OAuth it **requires** `search_threats` to return at least one Truss product (`id` + `title`). The access token stays **in memory for that process only** unless you pass `--save-token`.
 
 ```bash
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 # or:
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
-# test env:
-truss-mcp validate-remote https://api-test.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 ```
 
-After token exchange it prints a **Claude connector compatibility checklist** (resource URI, redirects, PKCE S256, issuer match, audience vs MCP resource, `truss_role`), then proves MCP access with real Truss data.
+After token exchange it prints an **OAuth compatibility checklist** (resource URI, redirects, PKCE S256, issuer match, audience vs MCP resource, `truss_role`), then proves MCP access with real Truss data.
 
 Options:
 
 ```bash
 truss-mcp validate-remote https://api.truss-security.com/mcp --verbose
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 truss-mcp validate-remote https://api.truss-security.com/mcp --save-token /tmp/truss-mcp-token
 truss-mcp validate-remote https://api.truss-security.com/mcp --token-file /tmp/truss-mcp-token
 truss-mcp validate-remote https://api.truss-security.com/mcp --port 9877
@@ -123,20 +121,13 @@ truss-mcp validate-remote https://api.truss-security.com/mcp --no-open
 ```
 
 - `--verbose` — HTTP statuses, key headers, truncated bodies (tokens redacted)
-- `--strict-claude` — exit `2` if the Claude checklist has WARN/FAIL (even when Truss MCP calls succeed)
+- `--strict-oauth` — exit `2` if the OAuth checklist has WARN/FAIL (even when Truss MCP calls succeed)
 - `--save-token PATH` — write the access token for local replay (mode `0600`; delete after debugging)
 - `--token-file PATH` — skip browser OAuth; reuse a saved token to re-check MCP access + Truss data
 
-Optional automated test (no browser; uses a saved token):
+Optional automated OAuth data tests (saved token + `TRUSS_RUN_MCP_OAUTH=1`) are documented in [guides/publishing.md](guides/publishing.md).
 
-```bash
-TRUSS_RUN_MCP_OAUTH=1 \
-TRUSS_MCP_URL=https://api-test.truss-security.com/mcp \
-TRUSS_MCP_OAUTH_TOKEN="$(cat /tmp/truss-mcp-token)" \
-npm test -- tests/validate-remote-oauth.integration.test.ts
-```
-
-Registry metadata: [config/mcp-registry.json](config/mcp-registry.json) · Architecture: [docs/05-hosted-mcp-oauth-architecture.md](docs/05-hosted-mcp-oauth-architecture.md)
+Official listing: [server.json](server.json) (`com.truss-security/truss-mcp`) · Tracker: [guides/registry-submission.md](guides/registry-submission.md) · Internal metadata: [config/mcp-registry.json](config/mcp-registry.json) · Architecture: [docs/05-hosted-mcp-oauth-architecture.md](docs/05-hosted-mcp-oauth-architecture.md)
 
 ## Configuration
 

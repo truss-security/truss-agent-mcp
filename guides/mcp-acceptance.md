@@ -29,9 +29,9 @@ See [client-setup-cursor.md](./client-setup-cursor.md) or [client-setup-claude-d
 ### Doctor / registry gate
 
 ```bash
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 # or:
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 ```
 
 ### Consent expectations
@@ -115,4 +115,4 @@ Process waits on stdio (no immediate exit).
 | 403 | Verify key tier in Truss dashboard |
 | Server exits | Set `TRUSS_API_KEY` in host `env`, not tool args |
 
-Security red-team tests: [truss-testing/mcpAgentTesting](https://github.com/truss-security/truss-testing/tree/main/mcpAgentTesting)
+Report security issues per [SECURITY.md](../SECURITY.md). Use the acceptance tables above to verify hosted or stdio tools in your MCP host.

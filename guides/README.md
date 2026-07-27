@@ -8,6 +8,7 @@ Task-oriented docs for installing and using `truss-mcp`.
 | [truss-cli.md](./truss-cli.md) | Terminal REPL — search, remote token, `run`, REPL commands |
 | [client-setup-cursor.md](./client-setup-cursor.md) | Cursor MCP — remote OAuth (recommended) |
 | [client-setup-claude-desktop.md](./client-setup-claude-desktop.md) | Claude Desktop — remote OAuth (recommended) |
+| [registry-submission.md](./registry-submission.md) | Official MCP Registry, Cursor, secondary listings |
 | [filterql-cookbook.md](./filterql-cookbook.md) | Natural language → FilterQL (local stdio) |
 | [truss-agent-vs-mcp.md](./truss-agent-vs-mcp.md) | Scheduled webhooks vs interactive MCP |
 | [mcp-acceptance.md](./mcp-acceptance.md) | Verify tools after install |

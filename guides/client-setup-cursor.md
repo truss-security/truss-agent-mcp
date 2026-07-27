@@ -23,7 +23,7 @@ Reload MCP / the window, approve consent in the browser, then confirm tools appe
 Verify from a terminal:
 
 ```bash
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 ```
 
 Architecture: [../docs/05-hosted-mcp-oauth-architecture.md](../docs/05-hosted-mcp-oauth-architecture.md).

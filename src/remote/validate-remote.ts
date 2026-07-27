@@ -38,7 +38,8 @@ export type ValidationOptions = {
   redirectPort: number;
   openBrowser: boolean;
   verbose: boolean;
-  strictClaude: boolean;
+  /** Exit non-zero if the OAuth compatibility checklist has WARN/FAIL. */
+  strictOauth: boolean;
   saveTokenPath?: string;
   /** Skip browser OAuth and reuse a previously saved access token. */
   tokenFilePath?: string;
@@ -104,7 +105,7 @@ function maskToken(token: string): string {
   return `${token.slice(0, 8)}…${token.slice(-6)} (${token.length} chars)`;
 }
 
-/** Canonical MCP resource URL per Claude connector guidance. */
+/** Canonical MCP resource URL for OAuth resource-parameter matching. */
 export function canonicalizeResourceUrl(input: string): string {
   const url = new URL(input);
   url.hash = '';
@@ -216,7 +217,8 @@ export function audiencesFromPayload(payload: Record<string, unknown>): string[]
   return [];
 }
 
-export function buildClaudeCompatibilityChecklist(args: {
+/** OAuth / remote-host compatibility checks (resource URI, PKCE, audience, tier). */
+export function buildOauthCompatibilityChecklist(args: {
   mcpUrl: string;
   metadataResource?: string;
   authIssuer?: string;
@@ -236,14 +238,14 @@ export function buildClaudeCompatibilityChecklist(args: {
       id: 'resource-metadata',
       status: 'fail',
       summary: 'Protected resource metadata missing resource URI',
-      detail: 'Claude connectors need a canonical resource URL in /.well-known/oauth-protected-resource.',
+      detail: 'OAuth MCP hosts need a canonical resource URL in /.well-known/oauth-protected-resource.',
     });
   } else if (metadataResource !== canonicalMcp) {
     items.push({
       id: 'resource-metadata',
       status: 'warn',
       summary: 'Advertised resource URI differs from MCP URL',
-      detail: `metadata.resource=${metadataResource}; mcpUrl=${canonicalMcp}. Register the metadata resource URL in Claude.`,
+      detail: `metadata.resource=${metadataResource}; mcpUrl=${canonicalMcp}. Hosts should register the metadata resource URL.`,
     });
   } else {
     items.push({
@@ -333,8 +335,8 @@ export function buildClaudeCompatibilityChecklist(args: {
       status: 'warn',
       summary: 'Token audience is Supabase "authenticated", not the MCP resource URI',
       detail:
-        `aud=${JSON.stringify(audiences)}; Claude connectors expect resource-bound audience ${expectedResource}. ` +
-        'Truss /mcp currently accepts aud=authenticated, so validate-remote can pass while Claude still fails after consent.',
+        `aud=${JSON.stringify(audiences)}; strict OAuth hosts expect resource-bound audience ${expectedResource}. ` +
+        'Truss /mcp currently accepts aud=authenticated, so validate-remote can pass while picky hosts still fail after consent.',
     });
   } else {
     items.push({
@@ -372,10 +374,10 @@ export function buildClaudeCompatibilityChecklist(args: {
   return items;
 }
 
-function printClaudeChecklist(items: ChecklistItem[]): void {
+function printOauthChecklist(items: ChecklistItem[]): void {
   console.log('');
-  console.log('Claude connector compatibility checklist');
-  console.log('----------------------------------------');
+  console.log('OAuth compatibility checklist');
+  console.log('-----------------------------');
   for (const item of items) {
     const mark = item.status === 'pass' ? 'PASS' : item.status === 'warn' ? 'WARN' : 'FAIL';
     console.log(`[${mark}] ${item.summary}`);
@@ -386,8 +388,8 @@ function printClaudeChecklist(items: ChecklistItem[]): void {
   const fails = items.filter((item) => item.status === 'fail');
   if (fails.length || warnings.length) {
     logWarn(
-      'Local Truss MCP may still work while Claude connectors fail. ' +
-        'If Claude shows ofid_… after Allow access, check API logs for a Bearer POST /mcp from Anthropic, then compare this checklist.'
+      'Truss MCP may still work for some hosts while others fail after consent. ' +
+        'Compare this checklist (resource URI, PKCE S256, issuer, audience, truss_role) against host OAuth logs.'
     );
   }
 }
@@ -964,7 +966,7 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
 
   logInfo(`Validating remote MCP OAuth server: ${mcpUrl}`);
   if (options.verbose) logInfo('Verbose mode: printing HTTP statuses and truncated bodies (tokens redacted).');
-  if (options.strictClaude) logInfo('Strict Claude mode: non-zero exit if Claude checklist has WARN/FAIL.');
+  if (options.strictOauth) logInfo('Strict OAuth mode: non-zero exit if OAuth checklist has WARN/FAIL.');
 
   if (options.tokenFilePath) {
     const token = readFileSync(options.tokenFilePath, 'utf8').trim();
@@ -1036,7 +1038,7 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
     logWarn('Could not decode access token payload.');
   }
 
-  const checklist = buildClaudeCompatibilityChecklist({
+  const checklist = buildOauthCompatibilityChecklist({
     mcpUrl,
     metadataResource: resourceMetadata.resource,
     authIssuer: authMetadata.issuer,
@@ -1045,7 +1047,7 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
     redirectLocation: redirectProbe.location,
     tokenPayload: payload,
   });
-  printClaudeChecklist(checklist);
+  printOauthChecklist(checklist);
 
   if (options.saveTokenPath) {
     saveTokenForDebug(options.saveTokenPath, token.access_token, mcpUrl);
@@ -1054,9 +1056,9 @@ export async function runValidateRemote(options: ValidationOptions): Promise<num
   await validateMcp(mcpUrl, token.access_token, options.verbose);
   logOk('Remote MCP OAuth validation complete (MCP accessible + Truss data returned)');
 
-  const claudeProblems = checklist.filter((item) => item.status === 'warn' || item.status === 'fail');
-  if (options.strictClaude && claudeProblems.length > 0) {
-    logWarn(`Strict Claude mode: ${claudeProblems.length} checklist issue(s); exiting 2.`);
+  const oauthProblems = checklist.filter((item) => item.status === 'warn' || item.status === 'fail');
+  if (options.strictOauth && oauthProblems.length > 0) {
+    logWarn(`Strict OAuth mode: ${oauthProblems.length} checklist issue(s); exiting 2.`);
     return 2;
   }
 
@@ -1099,7 +1101,8 @@ export function parseValidateRemoteOptions(argv: string[]): ValidationOptions {
     redirectPort: Number.isFinite(port) && port > 0 ? port : DEFAULT_REDIRECT_PORT,
     openBrowser: !argv.includes('--no-open'),
     verbose: argv.includes('--verbose') || argv.includes('-v'),
-    strictClaude: argv.includes('--strict-claude'),
+    // `--strict-claude` kept as a deprecated alias of `--strict-oauth`.
+    strictOauth: argv.includes('--strict-oauth') || argv.includes('--strict-claude'),
     saveTokenPath,
     tokenFilePath,
   };
@@ -1107,7 +1110,7 @@ export function parseValidateRemoteOptions(argv: string[]): ValidationOptions {
 
 /**
  * `truss-mcp doctor --remote` delegates to validate-remote with the same flags.
- * Usage: truss-mcp doctor --remote [--url URL] [--strict-claude] [--verbose] …
+ * Usage: truss-mcp doctor --remote [--url URL] [--strict-oauth] [--verbose] …
  */
 export function parseDoctorRemoteOptions(argv: string[]): ValidationOptions {
   const rest = argv.filter((arg, index) => index < 2 || (arg !== 'doctor' && arg !== '--remote'));

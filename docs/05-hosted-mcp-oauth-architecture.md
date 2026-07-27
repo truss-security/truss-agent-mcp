@@ -17,7 +17,7 @@ Truss exposes a **hosted MCP endpoint** on the API hostname. Cursor, Claude Desk
 
 **Not MCP:** `https://truss-security.com/mcp` and `https://www.truss-security.com/mcp` serve the marketing site. Do not list those URLs for hosts or registries.
 
-Implementation lives in **truss-api** (Lambda `mcpServer`) and **truss-dashboard** (`/oauth/consent`). Supabase is the OAuth authorization server. This package (`truss-agent-mcp`) does **not** host that endpoint; it ships:
+Implementation lives in the **Truss API service** (hosted `/mcp`) and the **Truss dashboard** (`/oauth/consent`). Supabase is the OAuth authorization server. This package (`truss-agent-mcp`) does **not** host that endpoint; it ships:
 
 1. **Remote-first docs and configs** for Cursor / Claude / registries
 2. **`truss-mcp validate-remote`** — OAuth + MCP doctor for the hosted URL
@@ -34,7 +34,7 @@ Implementation lives in **truss-api** (Lambda `mcpServer`) and **truss-dashboard
 | **Who can use** | Growth+ (Community blocked at consent) | Anyone with an eligible API key |
 | **Tool set** | **5** hosted tools (source of truth for registries) | **7** FilterQL-oriented tools over REST |
 | **Metering** | API Gateway usage plans + MCP eligibility gates | REST quotas via the API key |
-| **Owned by** | truss-api + truss-dashboard | this npm package |
+| **Owned by** | Truss API + dashboard consent | this npm package |
 
 ```mermaid
 flowchart TB
@@ -42,7 +42,7 @@ flowchart TB
     Host[MCP host]
   end
 
-  subgraph apiRepo [truss-api]
+  subgraph apiSvc [Truss_API_service]
     MCP["POST /mcp"]
     Meta["/.well-known/oauth-protected-resource"]
     Tools5[Five hosted tools]
@@ -50,7 +50,7 @@ flowchart TB
     Meta --> AS[Supabase AS]
   end
 
-  subgraph dash [truss-dashboard]
+  subgraph dash [Truss_dashboard]
     Consent["/oauth/consent Growth plus"]
   end
 
@@ -114,7 +114,7 @@ sequenceDiagram
 | **Scale** | Allowed |
 | **Enterprise** | Allowed |
 
-Consent UI: truss-dashboard `/oauth/consent` (`planRank >= growth`).
+Consent UI: Truss dashboard `/oauth/consent` (`planRank >= growth`).
 
 ### Dual auth on `/mcp`
 
@@ -141,7 +141,7 @@ Machine-readable listing: [../config/mcp-registry.json](../config/mcp-registry.j
 Validate before publish or certification:
 
 ```bash
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 # or: truss-mcp doctor --remote
 ```
 
@@ -151,10 +151,10 @@ truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
 
 | Concern | Where |
 |---------|--------|
-| Hosted server, metering, eligibility | **truss-api** |
-| OAuth consent UX | **truss-dashboard** |
+| Hosted server, metering, eligibility | Truss API service |
+| OAuth consent UX | Truss dashboard |
 | OAuth doctor / CLI / legacy stdio | **truss-agent-mcp** (this repo) |
-| Product narrative for dashboard RAG | **truss-intelligence** (keep in sync) |
+| Product narrative for in-app assistants | Keep dashboard product docs in sync |
 
 Shared principles: default ~7-day search windows, Community excluded from MCP product access, no API keys in tool arguments.
 
