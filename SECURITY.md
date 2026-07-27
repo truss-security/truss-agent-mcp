@@ -16,9 +16,9 @@ If you discover a security issue in `truss-agent-mcp`, please report it responsi
 
 ## Credential handling
 
-- **Remote OAuth (recommended for Cursor / Claude):** no API key in host config. Browser consent; Growth+ only. Prefer this path so keys never sit in `mcp.json`.
-- **Truss API key** (`TRUSS_API_KEY`) for local stdio (`truss-mcp mcp`) or default CLI search. Never pass API keys in MCP tool arguments or commit them to version control.
-- **OAuth tokens** from `validate-remote --save-token` are for local debugging only (mode `0600`); delete after use. Never commit token files.
+- **Remote OAuth (recommended for Cursor / Claude and other MCP hosts):** no API key in host config. Browser consent; Growth+ only. Prefer this path so keys never sit in `mcp.json`.
+- **Truss API key** (`TRUSS_API_KEY`) for local stdio (`truss-mcp mcp`) or `truss-mcp search` with `TRUSS_MCP_TRANSPORT=stdio`. Never pass API keys in MCP tool arguments or commit them to version control.
+- **OAuth tokens** from `validate-remote --save-token` are for local debugging / remote CLI search only (mode `0600`); delete after use. Never commit token files.
 - **LLM API keys** (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) are only required for `truss-mcp search` CLI mode.
 - The `truss-mcp doctor` command reports masked key previews (first/last characters only) and never prints full secrets.
 

@@ -1,4 +1,6 @@
-# FilterQL for LLM hosts
+# FilterQL for LLM hosts (local stdio)
+
+> Applies to the **local stdio** seven-tool surface (`truss-mcp mcp`). Hosted OAuth MCP uses `search_threats`, `lookup_ioc`, and related tools — see [05 — Hosted MCP OAuth](./05-hosted-mcp-oauth-architecture.md).
 
 Translate user intent into **Truss FilterQL**, then call `search_products`. Stay Truss-first; mention external/OSINT only after the Truss path.
 

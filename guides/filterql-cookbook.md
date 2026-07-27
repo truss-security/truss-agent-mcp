@@ -21,10 +21,10 @@ Truss product search via FilterQL. Pair filters with `days` or `startDate`/`endD
 2. Ask about aliases before expanding
 3. Add `OR` clauses only after confirmation
 
-In the terminal REPL: build in **ask**, confirm, then **`run`**.
+In the terminal REPL (`truss-mcp search`): draft FilterQL (stdio) or a search intent (remote), **confirm**, then **`run`**.
 
 ## Validation
 
-Call `validate_filter_expression` before `search_products` when the model authored the filter.
+Call `validate_filter_expression` before `search_products` when the model authored the filter (**local stdio** tools).
 
 Reference: [../docs/03-filterql-for-llms.md](../docs/03-filterql-for-llms.md)

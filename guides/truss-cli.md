@@ -8,8 +8,8 @@ Interactive assistant that acts like an embedded Cursor/Claude host: connects to
 |---------|---------|
 | `truss-mcp init` | OAuth token path / legacy key, LLM provider, model |
 | `truss-mcp doctor` | Validate local keys / REST (legacy) |
-| `truss-mcp doctor --remote` | Hosted OAuth doctor (registry gate) |
-| `truss-mcp validate-remote [url]` | Same as doctor --remote |
+| `truss-mcp doctor --remote --strict-oauth` | Hosted OAuth doctor (registry gate) |
+| `truss-mcp validate-remote [url]` | Same as doctor --remote (add `--strict-oauth` for the gate) |
 | `truss-mcp search` | Guided Truss search REPL (MCP tools on) |
 | `truss-mcp mcp` | Local stdio server (legacy / air-gap) |
 | `truss-mcp help` | Usage |
@@ -45,12 +45,16 @@ Truss-first: use hosted tools (or FilterQL on stdio). External/OSINT only after 
 
 ## Typical workflow
 
+**Remote (default)** — the assistant uses hosted tools (`search_threats`, `lookup_ioc`, …) after you confirm.
+
+**Stdio (legacy)** — FilterQL draft → confirm → `run`:
+
 ```
 truss search> What is Sandworm?
-# → knowledge answer; offers to build a filter
+# → knowledge answer; offers to build a search
 
 truss search> yes
-# → drafts FilterQL, validates, offers refine + query
+# → drafts intent or FilterQL; offers refine + query
 
 truss search> confirm
 truss search> run                  # live search, default 7 days
@@ -61,7 +65,6 @@ truss search> detect splunk        # Splunk SPL from IOCs in results
 truss search> Don't query again — dedupe the IOCs from your last reply
 # → uses conversation context only, no API call
 ```
-
 ## REPL commands
 
 | Input | Action |
@@ -92,7 +95,7 @@ Each turn is split into ASCII-bordered sections with semantic colors (TTY only):
 | Section | Content |
 |---------|---------|
 | `--- You ---` | Your message |
-| `--- MCP · tool ---` | Live tool trace: `→ search_products`, args, `✓ 12 matches · 847ms` |
+| `--- MCP · tool ---` | Live tool trace: `→ search_threats` (remote) or `→ search_products` (stdio), args, timing |
 | `--- Results ---` | Structured product table (before assistant prose) |
 | `--- Truss ---` | Assistant reply; offers in yellow, FilterQL in magenta |
 
@@ -100,21 +103,21 @@ Disable colors: `color off`, `NO_COLOR=1`, or `TRUSS_MCP_COLOR=never` in `.env`.
 
 ## Filters and date windows
 
-1. Ask a knowledge or filter-building question; the assistant drafts FilterQL and asks you to confirm (often options 1/2).
-2. Type **`confirm`** or reply with your choice → filter is locked.
-3. Type **`run`** → executes against Truss API.
+1. Ask a knowledge or search-building question; the assistant drafts a remote search intent or (stdio) FilterQL and asks you to confirm.
+2. Type **`confirm`** or reply with your choice → filter/intent is locked.
+3. Type **`run`** → executes against Truss MCP tools.
 
 - **Default window:** last 7 days
 - **Custom:** `days 30` then `run`, or `run 30`, or mention "last 30 days" when confirming
 - **Quota:** windows wider than 7 days may use more Truss API quota
 
-FilterQL examples: [filterql-cookbook.md](./filterql-cookbook.md)
+FilterQL examples (stdio / FilterQL-oriented hosts): [filterql-cookbook.md](./filterql-cookbook.md)
 
 ## Follow-ups without re-querying
 
 Ask to extract, dedupe, group, or reformat IOCs from prior results. If you say **do not query Truss again**, the assistant uses thread context only — no MCP tool calls.
 
-For a **new** search that needs full IOC values, the model should use `include_indicators: true` on `search_products`.
+For a **new** search that needs full IOC values: on **stdio**, pass `include_indicators: true` to `search_products`; on **remote**, use the hosted tool options that return indicator detail when available.
 
 ## Environment
 
