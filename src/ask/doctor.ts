@@ -160,7 +160,7 @@ export async function runDoctor(fromModuleUrl?: string, argv: string[] = process
   }
 
   console.log('Truss MCP doctor — local stdio / REST keys\n');
-  console.log('  For hosted OAuth (Cursor, Claude, OpenAI, Gemini, …): truss-mcp doctor --remote [--strict-oauth]\n');
+  console.log('  For hosted OAuth MCP hosts (Cursor, Claude, and others): truss-mcp doctor --remote [--strict-oauth]\n');
   for (const r of results) {
     const icon = r.ok ? '✓' : '✗';
     console.log(`  ${icon} ${r.name}: ${r.detail}`);

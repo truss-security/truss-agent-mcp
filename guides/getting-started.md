@@ -7,8 +7,8 @@ git clone https://github.com/truss-security/truss-agent-mcp.git
 cd truss-agent-mcp
 npm install && npm run build
 npm install -g .          # optional — truss-mcp on PATH
-truss-mcp doctor --remote # hosted OAuth path (Cursor / Claude)
-truss-mcp init            # LLM keys + OAuth token path for search
+truss-mcp doctor --remote --strict-oauth  # hosted OAuth path (Cursor / Claude)
+truss-mcp init                            # LLM keys + OAuth token path for search
 ```
 
 Not published to npm yet. After publish: `npm install -g @truss-security/truss-agent-mcp`.

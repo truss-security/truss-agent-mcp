@@ -37,7 +37,7 @@ Loaded from environment at startup (see `env.example`):
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `TRUSS_API_KEY` | — | Required for local stdio and default CLI search |
+| `TRUSS_API_KEY` | — | Required for local stdio and legacy stdio CLI search (`TRUSS_MCP_TRANSPORT=stdio`) |
 | `TRUSS_API_URL` | `https://api.truss-security.com` | REST API base |
 | `TRUSS_MCP_URL` | `https://api.truss-security.com/mcp` | Hosted MCP URL (remote CLI / doctor) |
 | `TRUSS_MCP_OAUTH_TOKEN_FILE` | — | Bearer token file for remote CLI search |

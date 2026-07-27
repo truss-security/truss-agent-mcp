@@ -1,6 +1,6 @@
-# Public API contract (MCP tier)
+# Public API contract (local stdio MCP tier)
 
-This document describes what **truss-agent-mcp** is allowed to call. Authoritative server rules live in the Truss API authorizer (`endpointAccess` by `accessType` tag on the API key).
+This document describes what the **local stdio** server in this package is allowed to call via `@truss-security/truss-sdk`. Hosted MCP at `https://api.truss-security.com/mcp` is a separate surface (see [05](./05-hosted-mcp-oauth-architecture.md)).
 
 ## Authentication
 
@@ -10,22 +10,24 @@ This document describes what **truss-agent-mcp** is allowed to call. Authoritati
 
 ## Allowed routes (customer keys)
 
-| Method | Path | MCP tools |
-|--------|------|-----------|
+| Method | Path | Local stdio MCP tools |
+|--------|------|------------------------|
 | POST | `/product/search` | `search_products`, `search_products_page`, `iterate_products_summary` |
 | POST | `/product/search/stix` | `search_products_stix` |
 | GET | `/product/{id}/stix` | `get_product_stix` |
 
-## Not used by truss-agent-mcp v1
+Hosted MCP additionally exposes product JSON via `get_product` on the remote surface; that is not part of the local stdio tool set.
 
-These require `accessType: admin` on the API key today and are **not** exposed as MCP tools in v1:
+## Not used by local stdio v1
+
+These require `accessType: admin` on the API key today and are **not** exposed as local stdio MCP tools:
 
 - `/search/smart`, `/search/vector`, `/search/global`, `/search/similar/{id}`
-- `GET /product/{id}` (native JSON)
+- `GET /product/{id}` (native JSON) on the **stdio** path
 - `POST /product` and other writes
 - Analytics, batch admin, `POST /pg-query`
 
-**Planned expansions** (quota visibility, contributor POST, customer-tier smart/similar search, product GET by id) are not yet available in this MCP server.
+**Planned expansions** for the local stdio surface (quota visibility, contributor POST, customer-tier smart/similar search) are not yet available here.
 
 The public [OpenAPI spec](https://github.com/truss-security/truss-docs/blob/main/openapi/trussapi.json) documents only the customer-tier search and STIX routes.
 

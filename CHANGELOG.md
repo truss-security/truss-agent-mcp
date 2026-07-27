@@ -32,6 +32,7 @@
 - **Merged ask coaching into search** — FilterQL building, validation, and knowledge answers in one mode
 - **Updated MCP host instructions** — same guided workflow for Cursor / Claude Desktop hosts
 - **Single conversation history** — no per-mode state split
+- **Docs accuracy** — remote-first wording, stdio samples use `truss-mcp` (pre-npm), fixed broken docs links
 
 ### Removed
 
@@ -70,12 +71,11 @@
 - **REPL commands** — `help`, `filter`, `confirm`, `days`, `days 30`, `run 30`, `clear`, `status`; `!` / `search:` / `ask:` force prefixes
 - **API quota hints** — disclosed when using windows wider than 7 days (`days 30`, `run 30`, long date ranges)
 - **Richer MCP tool descriptions** — validate-first, pagination, STIX, and quota guidance
-- **Removed GitHub Actions workflows** — no automated CI, integration, or release runs in the repo; publish manually per `guides/publishing.md`
 - **Context-only follow-ups** — search prompts honor "do not query again"; IOC dedupe/format uses thread context without MCP tool calls
 - **Documentation refresh** — README, guides, and reference docs updated for current REPL and MCP behavior
 - **`search` vs `ask` are now functionally distinct**: `search` connects Truss MCP tools; `ask` is LLM-only and cannot query products
 - **REPL mode switching** — `:search` and `:ask` switch modes without exiting (MCP subprocess started/stopped accordingly)
-- **Single binary only** — removed `truss-agent-mcp` npm bin; MCP hosts use `truss-mcp mcp` (or `npx -y @truss-security/truss-agent-mcp mcp`)
+- **Single binary only** — removed `truss-agent-mcp` npm bin; MCP hosts use `truss-mcp mcp` (or `npx -y @truss-security/truss-agent-mcp mcp` after npm publish)
 - CLI binary renamed from `truss` to `truss-mcp` to avoid conflict with `@truss-security/truss-sdk`'s `truss` bin
 - MCP server protocol name and SDK `userAgent` updated to `truss-mcp/<version>`
 - `search_products_stix` MCP tool returns `{ bundle, objectCount, pagination? }` instead of raw SDK wrapper

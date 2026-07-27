@@ -30,14 +30,14 @@ Architecture: [../docs/05-hosted-mcp-oauth-architecture.md](../docs/05-hosted-mc
 
 ## Legacy: local stdio (air-gap)
 
-Only when you cannot use remote OAuth. See [../config/cursor.mcp.stdio.json](../config/cursor.mcp.stdio.json):
+Only when you cannot use remote OAuth. Install from this repo first (`npm install -g .`), then use [../config/cursor.mcp.stdio.json](../config/cursor.mcp.stdio.json):
 
 ```json
 {
   "mcpServers": {
     "truss-mcp": {
-      "command": "npx",
-      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
+      "command": "truss-mcp",
+      "args": ["mcp"],
       "env": {
         "TRUSS_API_KEY": "YOUR_TRUSS_API_KEY",
         "TRUSS_API_URL": "https://api.truss-security.com"
@@ -47,9 +47,9 @@ Only when you cannot use remote OAuth. See [../config/cursor.mcp.stdio.json](../
 }
 ```
 
-After global install: `"command": "truss-mcp"`, `"args": ["mcp"]`.
+Local clone without a global install: `"command": "node"`, `"args": ["/absolute/path/to/truss-agent-mcp/dist/truss-cli.js", "mcp"]`.
 
-Local clone: `"command": "node"`, `"args": ["/absolute/path/to/truss-agent-mcp/dist/truss-cli.js", "mcp"]`.
+After the package is published to npm, you may use `"command": "npx"`, `"args": ["-y", "@truss-security/truss-agent-mcp", "mcp"]` instead.
 
 Stdio tools differ from hosted (FilterQL-oriented seven-tool set) — see [../docs/04-mcp-tool-catalog.md](../docs/04-mcp-tool-catalog.md).
 

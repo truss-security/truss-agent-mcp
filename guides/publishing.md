@@ -10,7 +10,7 @@ truss-mcp doctor --remote --strict-oauth
 truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 ```
 
-`doctor --remote` / `validate-remote --strict-oauth` is the **registry compatibility gate** (OAuth discovery, DCR, PKCE, OAuth checklist, live Truss data). Do not publish a registry listing that fails this check.
+`doctor --remote --strict-oauth` / `validate-remote --strict-oauth` is the **registry compatibility gate** (OAuth discovery, DCR, PKCE, OAuth checklist, live Truss data). Do not publish a registry listing that fails this check.
 
 ## npm
 

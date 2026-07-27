@@ -33,5 +33,5 @@ Repo: [truss-security/truss-agent-mcp](https://github.com/truss-security/truss-a
 
 ## Not covered by either
 
-- Ingesting CTI from arbitrary URLs → separate Truss ingest tooling
+- Ingesting CTI from arbitrary URLs into Truss (separate ingest tooling)
 - Admin-only vector/smart search on customer keys → not available via public MCP

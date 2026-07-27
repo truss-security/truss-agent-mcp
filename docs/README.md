@@ -13,7 +13,7 @@ Read in order for a full picture, or jump to the topic you need.
 | 03 | [filterql-for-llms.md](./03-filterql-for-llms.md) | FilterQL grammar, operators, workflow for host LLMs |
 | 04 | [mcp-tool-catalog.md](./04-mcp-tool-catalog.md) | Local stdio seven MCP tools |
 | 05 | [hosted-mcp-oauth-architecture.md](./05-hosted-mcp-oauth-architecture.md) | Hosted MCP at `api.truss-security.com/mcp`, OAuth, Growth+ gate |
-| 06 | [cross-repo-oauth-checklist.md](./06-cross-repo-oauth-checklist.md) | Dependent updates in api / dashboard / docs / intelligence |
+| 06 | [cross-repo-oauth-checklist.md](./06-cross-repo-oauth-checklist.md) | Dependent updates outside this package (API, dashboard, public docs) |
 
 ## Remote MCP (recommended for hosts)
 
@@ -29,6 +29,5 @@ Install and usage walkthroughs: [../guides/](../guides/)
 
 ## External
 
-- [Truss SDK](https://truss-security.github.io/truss-docs/data/sdk)
-- [Truss API](https://truss-security.github.io/truss-docs/data/api)
+- [Truss docs (GitHub)](https://github.com/truss-security/truss-docs)
 - [OpenAPI (public tier)](https://github.com/truss-security/truss-docs/blob/main/openapi/trussapi.json)

@@ -16,7 +16,7 @@ truss-mcp doctor --remote --strict-oauth
 | MCP URL (clients) | `https://api.truss-security.com/mcp` |
 | Marketing / docs page | `https://truss-security.com/mcp` |
 | Namespace proof | DNS TXT on apex `truss-security.com` (`v=MCPv1; k=ed25519; …`) |
-| Publisher private key | AWS Secrets Manager `<your-secret-id>` |
+| Publisher private key | AWS Secrets Manager (never commit `key.pem`) |
 
 Do **not** list `https://truss-security.com/mcp` as the MCP remote URL (HTML marketing page).
 
@@ -38,18 +38,16 @@ Do **not** list `https://truss-security.com/mcp` as the MCP remote URL (HTML mar
 - [ ] `server.json` and `.mcp.json` are on `main`
 - [ ] CI gitleaks job is green on the merge PR
 - [ ] Registry gate still passes: `truss-mcp doctor --remote --strict-oauth`
+- [ ] Docs and guides match remote-first product truth (no stale `ask` / `npx` before npm publish)
 
 ## Official registry publish
 
 ```bash
-# Login (DNS) — private key from Secrets Manager; never commit key.pem
-aws secretsmanager get-secret-value \
-  --secret-id "<your-secret-id>" \
-  --query SecretString --output text > /tmp/mcp-registry-key.pem
-chmod 600 /tmp/mcp-registry-key.pem
+# Login (DNS) — load publisher private key from your secrets store; never commit key.pem
+# Example (AWS): aws secretsmanager get-secret-value --secret-id <your-secret-id> ...
 PRIVATE_KEY="$(openssl pkey -in /tmp/mcp-registry-key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n')"
 mcp-publisher login dns --domain truss-security.com --private-key "${PRIVATE_KEY}"
-rm /tmp/mcp-registry-key.pem
+rm -f /tmp/mcp-registry-key.pem
 
 cd /path/to/truss-agent-mcp
 mcp-publisher publish
