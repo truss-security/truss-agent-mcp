@@ -28,7 +28,7 @@ Repo: [truss-security/truss-agent-mcp](https://github.com/truss-security/truss-a
 
 ## Shared behavior
 
-- Hosted path: OAuth + API metering on `/mcp` (owned by truss-api).
+- Hosted path: OAuth + API metering on `/mcp` (Truss API service).
 - Legacy stdio: same `POST /product/search` payload rules as other REST clients (see `src/lib/build-product-search-payload.ts`).
 
 ## Not covered by either

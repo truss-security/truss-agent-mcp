@@ -6,17 +6,17 @@ Commands
   truss-mcp mcp        Local stdio MCP server (legacy / air-gap)
   truss-mcp init       Interactive setup (OAuth token path + LLM)
   truss-mcp doctor     Validate local keys and REST (legacy)
-  truss-mcp doctor --remote [--strict-claude] [--url URL]
+  truss-mcp doctor --remote [--strict-oauth] [--url URL]
                        Hosted OAuth doctor (same as validate-remote; registry gate)
   truss-mcp validate-remote [url]
                        OAuth + MCP doctor (default URL: api.truss-security.com/mcp)
-                       Options: --verbose  --strict-claude  --save-token PATH
+                       Options: --verbose  --strict-oauth  --save-token PATH
                                 --token-file PATH  --no-open  --port 9876  --url URL
   truss-mcp help       This help
 
 Guided workflow
   Knowledge → shape search → confirm → run → STIX / detection rules (LLM extras)
-  Same five hosted tools as Cursor / Claude Desktop.
+  Same five hosted tools as Cursor, Claude Desktop, and other OAuth MCP hosts.
 
 Remote search (default — OAuth parity with Cursor)
   truss-mcp doctor --remote --save-token /tmp/truss-mcp-token

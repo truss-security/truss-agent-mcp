@@ -5,12 +5,12 @@
 ```bash
 npm test
 npm run smoke
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 # or:
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 ```
 
-`doctor --remote` / `validate-remote --strict-claude` is the **registry compatibility gate** (OAuth discovery, DCR, PKCE, Claude checklist, live Truss data). Do not publish a registry listing that fails this check.
+`doctor --remote` / `validate-remote --strict-oauth` is the **registry compatibility gate** (OAuth discovery, DCR, PKCE, OAuth checklist, live Truss data). Do not publish a registry listing that fails this check.
 
 ## npm
 
@@ -22,7 +22,7 @@ npm publish --access public
 
 Package: `@truss-security/truss-agent-mcp`
 
-Registry metadata (remote URL primary): [../config/mcp-registry.json](../config/mcp-registry.json)
+Official registry: [../server.json](../server.json) · Submission guide: [registry-submission.md](./registry-submission.md) · Internal metadata: [../config/mcp-registry.json](../config/mcp-registry.json)
 
 ## GitHub release
 
@@ -51,6 +51,15 @@ npm test
 Without `TRUSS_RUN_INTEGRATION`, REST integration cases are skipped.
 
 CLI live turn test (`ask-integration.test.ts`) also needs `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
+
+Optional hosted MCP OAuth data test (no browser; uses a saved token):
+
+```bash
+TRUSS_RUN_MCP_OAUTH=1 \
+TRUSS_MCP_URL=https://api-test.truss-security.com/mcp \
+TRUSS_MCP_OAUTH_TOKEN="$(cat /tmp/truss-mcp-token)" \
+npm test -- tests/validate-remote-oauth.integration.test.ts
+```
 
 ## SDK notes
 

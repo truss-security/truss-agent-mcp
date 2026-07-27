@@ -4,7 +4,7 @@ Canonical guide for AI agents working in this repository. **Ignore prior chat co
 
 ## What this repo is
 
-Official Truss **MCP CLI + local stdio server** (`truss-mcp`). Hosted OAuth MCP for Cursor/Claude/registries lives in **truss-api** at `https://api.truss-security.com/mcp`.
+Official Truss **MCP CLI + local stdio server** (`truss-mcp`). Hosted OAuth MCP for Cursor/Claude/registries lives on the Truss API at `https://api.truss-security.com/mcp`.
 
 | Command | Purpose | Keys / auth |
 |---------|---------|-------------|

@@ -30,7 +30,7 @@
     "truss:doctor": "node dist/truss-cli.js doctor",
     "truss:search": "node dist/truss-cli.js search",
     "truss:mcp": "node dist/truss-cli.js mcp",
-    "test": "node --import tsx --test tests/**/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "smoke": "npm run build && node --import tsx --test tests/smoke.test.ts",
     "prepublishOnly": "npm run clean && npm run build"
   },

@@ -6,6 +6,10 @@
 
 - **Remote-first MCP docs and configs** — Cursor/Claude samples use `https://api.truss-security.com/mcp` (OAuth); stdio configs moved to `*.stdio.json`
 - **`truss-mcp doctor --remote`** — registry OAuth gate (delegates to `validate-remote`, default prod URL)
+- **`--strict-oauth`** — fail registry gate when the OAuth compatibility checklist has WARN/FAIL (`--strict-claude` kept as deprecated alias)
+- **`server.json`** — official MCP Registry metadata (`com.truss-security/truss-mcp`, remote OAuth URL); published v1.1.0
+- **`.mcp.json`** — cursor.directory auto-detect config (remote URL)
+- **`guides/registry-submission.md`** — registry channel tracker, DNS/publish steps, pre-public checklist
 - **`config/mcp-registry.json`** — machine-readable remote MCP listing for registries
 - **Remote CLI search** — `TRUSS_MCP_OAUTH_TOKEN_FILE` connects `truss-mcp search` to hosted MCP via Streamable HTTP
 - **Docs 05/06** — hosted OAuth architecture (canonical API URL) and cross-repo checklist
