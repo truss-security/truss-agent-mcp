@@ -26,7 +26,7 @@ description: Develop, test, and release the Truss MCP server and truss-mcp CLI. 
 - **Remote (recommended):** `config/cursor.mcp.json` / `config/claude_desktop_config.json` → `https://api.truss-security.com/mcp` + OAuth.
 - **Legacy stdio:** `config/cursor.mcp.stdio.json`; `TRUSS_API_KEY` in host `env`.
 - Guides: `guides/client-setup-cursor.md`, `guides/client-setup-claude-desktop.md`.
-- Verify remote: `truss-mcp doctor --remote` or `truss-mcp validate-remote … --strict-claude`.
+- Verify remote: `truss-mcp doctor --remote` or `truss-mcp validate-remote … --strict-oauth`.
 
 ### Run tests
 

@@ -5,12 +5,12 @@
 ```bash
 npm test
 npm run smoke
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 # or:
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 ```
 
-`doctor --remote` / `validate-remote --strict-claude` is the **registry compatibility gate** (OAuth discovery, DCR, PKCE, Claude checklist, live Truss data). Do not publish a registry listing that fails this check.
+`doctor --remote` / `validate-remote --strict-oauth` is the **registry compatibility gate** (OAuth discovery, DCR, PKCE, OAuth checklist, live Truss data). Do not publish a registry listing that fails this check.
 
 ## npm
 

@@ -141,7 +141,7 @@ Machine-readable listing: [../config/mcp-registry.json](../config/mcp-registry.j
 Validate before publish or certification:
 
 ```bash
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 # or: truss-mcp doctor --remote
 ```
 

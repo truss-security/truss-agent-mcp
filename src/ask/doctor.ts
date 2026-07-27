@@ -31,7 +31,7 @@ export async function runDoctor(fromModuleUrl?: string, argv: string[] = process
   if (wantsRemoteDoctor(argv)) {
     console.log('Truss MCP doctor — remote OAuth path (hosted MCP)\n');
     console.log(`  Default URL: ${defaultMcpUrlFromEnv()}`);
-    console.log('  Tip: pass --url, --strict-claude, --verbose, --save-token, --token-file\n');
+    console.log('  Tip: pass --url, --strict-oauth, --verbose, --save-token, --token-file\n');
     return runValidateRemote(parseDoctorRemoteOptions(argv));
   }
 
@@ -160,7 +160,7 @@ export async function runDoctor(fromModuleUrl?: string, argv: string[] = process
   }
 
   console.log('Truss MCP doctor — local stdio / REST keys\n');
-  console.log('  For hosted OAuth (Cursor/Claude): truss-mcp doctor --remote [--strict-claude]\n');
+  console.log('  For hosted OAuth (Cursor, Claude, OpenAI, Gemini, …): truss-mcp doctor --remote [--strict-oauth]\n');
   for (const r of results) {
     const icon = r.ok ? '✓' : '✗';
     console.log(`  ${icon} ${r.name}: ${r.detail}`);

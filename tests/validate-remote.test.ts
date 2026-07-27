@@ -6,7 +6,7 @@ import {
   assertTrussDataFromSearchThreats,
   audiencesFromPayload,
   authorizationServerMetadataUrls,
-  buildClaudeCompatibilityChecklist,
+  buildOauthCompatibilityChecklist,
   canonicalizeResourceUrl,
   parseSearchThreatsToolResult,
   parseValidateRemoteOptions,
@@ -102,11 +102,11 @@ describe('parseSearchThreatsToolResult / assertTrussDataFromSearchThreats', () =
   });
 });
 
-describe('buildClaudeCompatibilityChecklist', () => {
+describe('buildOauthCompatibilityChecklist', () => {
   const mcpUrl = 'https://api-test.truss-security.com/mcp';
 
   it('warns when aud is authenticated instead of MCP resource URI', () => {
-    const items = buildClaudeCompatibilityChecklist({
+    const items = buildOauthCompatibilityChecklist({
       mcpUrl,
       metadataResource: mcpUrl,
       authIssuer: 'https://example.supabase.co/auth/v1',
@@ -121,11 +121,11 @@ describe('buildClaudeCompatibilityChecklist', () => {
 
     const audience = items.find((item) => item.id === 'audience-resource');
     assert.equal(audience?.status, 'warn');
-    assert.match(audience?.detail ?? '', /Claude connectors expect resource-bound audience/);
+    assert.match(audience?.detail ?? '', /strict OAuth hosts expect resource-bound audience/);
   });
 
   it('passes when aud includes the MCP resource URI', () => {
-    const items = buildClaudeCompatibilityChecklist({
+    const items = buildOauthCompatibilityChecklist({
       mcpUrl,
       metadataResource: mcpUrl,
       authIssuer: 'https://example.supabase.co/auth/v1',
@@ -143,7 +143,7 @@ describe('buildClaudeCompatibilityChecklist', () => {
   });
 
   it('fails on cross-host redirect and issuer mismatch', () => {
-    const items = buildClaudeCompatibilityChecklist({
+    const items = buildOauthCompatibilityChecklist({
       mcpUrl,
       metadataResource: mcpUrl,
       authIssuer: 'https://example.supabase.co/auth/v1',
@@ -166,14 +166,14 @@ describe('buildClaudeCompatibilityChecklist', () => {
 });
 
 describe('parseValidateRemoteOptions', () => {
-  it('parses verbose, strict-claude, save-token, token-file, and port flags', () => {
+  it('parses verbose, strict-oauth, save-token, token-file, and port flags', () => {
     const options = parseValidateRemoteOptions([
       'node',
       'truss-mcp',
       'validate-remote',
       'https://api-test.truss-security.com/mcp',
       '--verbose',
-      '--strict-claude',
+      '--strict-oauth',
       '--save-token',
       '/tmp/truss-mcp-token',
       '--token-file',
@@ -185,7 +185,7 @@ describe('parseValidateRemoteOptions', () => {
 
     assert.equal(options.mcpUrl, 'https://api-test.truss-security.com/mcp');
     assert.equal(options.verbose, true);
-    assert.equal(options.strictClaude, true);
+    assert.equal(options.strictOauth, true);
     assert.equal(options.saveTokenPath, '/tmp/truss-mcp-token');
     assert.equal(options.tokenFilePath, '/tmp/truss-mcp-token');
     assert.equal(options.redirectPort, 9877);
@@ -196,13 +196,23 @@ describe('parseValidateRemoteOptions', () => {
     const prev = process.env.TRUSS_MCP_URL;
     delete process.env.TRUSS_MCP_URL;
     try {
-      const options = parseValidateRemoteOptions(['node', 'truss-mcp', 'validate-remote', '--strict-claude']);
+      const options = parseValidateRemoteOptions(['node', 'truss-mcp', 'validate-remote', '--strict-oauth']);
       assert.equal(options.mcpUrl, 'https://api.truss-security.com/mcp');
-      assert.equal(options.strictClaude, true);
+      assert.equal(options.strictOauth, true);
     } finally {
       if (prev === undefined) delete process.env.TRUSS_MCP_URL;
       else process.env.TRUSS_MCP_URL = prev;
     }
+  });
+
+  it('accepts deprecated --strict-claude as an alias of --strict-oauth', () => {
+    const options = parseValidateRemoteOptions([
+      'node',
+      'truss-mcp',
+      'validate-remote',
+      '--strict-claude',
+    ]);
+    assert.equal(options.strictOauth, true);
   });
 
   it('parseDoctorRemoteOptions maps doctor --remote flags', () => {
@@ -213,11 +223,11 @@ describe('parseValidateRemoteOptions', () => {
       '--remote',
       '--url',
       'https://api-test.truss-security.com/mcp',
-      '--strict-claude',
+      '--strict-oauth',
       '--no-open',
     ]);
     assert.equal(options.mcpUrl, 'https://api-test.truss-security.com/mcp');
-    assert.equal(options.strictClaude, true);
+    assert.equal(options.strictOauth, true);
     assert.equal(options.openBrowser, false);
   });
 });

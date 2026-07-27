@@ -29,9 +29,9 @@ See [client-setup-cursor.md](./client-setup-cursor.md) or [client-setup-claude-d
 ### Doctor / registry gate
 
 ```bash
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 # or:
-truss-mcp validate-remote https://api.truss-security.com/mcp --strict-claude
+truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
 ```
 
 ### Consent expectations

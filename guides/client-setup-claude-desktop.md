@@ -26,7 +26,7 @@ Fully quit and reopen Claude Desktop. Approve consent when prompted. Hosted tool
 Preflight:
 
 ```bash
-truss-mcp doctor --remote --strict-claude
+truss-mcp doctor --remote --strict-oauth
 ```
 
 ## Legacy: local stdio (air-gap)
