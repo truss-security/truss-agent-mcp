@@ -32,10 +32,10 @@
   "legacy": {
     "stdio": {
       "package": "@truss-security/truss-agent-mcp",
-      "command": "npx",
-      "args": ["-y", "@truss-security/truss-agent-mcp", "mcp"],
+      "command": "truss-mcp",
+      "args": ["mcp"],
       "env": ["TRUSS_API_KEY"],
-      "note": "Air-gap / BYO-key only. Prefer remotes[0] for Cursor, Claude, and registries."
+      "note": "Air-gap / BYO-key only. Prefer remotes[0] for Cursor, Claude, and registries. Until npm publish: npm install -g . then truss-mcp mcp (npx @truss-security/truss-agent-mcp after publish)."
     }
   }
 }

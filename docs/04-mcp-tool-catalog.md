@@ -72,10 +72,10 @@ Default summary: `id`, `truss_prod_id`, `title`, `category`, `source`, `type`, `
 
 Full `indicators` map only when `include_indicators: true`.
 
-## Planned (not in v1)
+## Planned (local stdio only)
 
-Future tools may cover quota visibility, contributor POST, smart/vector search, and native product GET — not available in v1.
+Future **stdio** tools may cover quota visibility, contributor POST, and smart/vector search. Hosted MCP already exposes product JSON via `get_product` — see [05](./05-hosted-mcp-oauth-architecture.md).
 
 ---
 
-**Prev:** [03 — FilterQL for LLMs](./03-filterql-for-llms.md) · **Next:** [05 — Hosted MCP (proposal)](./05-hosted-mcp-oauth-architecture.md) · [Docs index](./README.md)
+**Prev:** [03 — FilterQL for LLMs](./03-filterql-for-llms.md) · **Next:** [05 — Hosted MCP OAuth](./05-hosted-mcp-oauth-architecture.md) · [Docs index](./README.md)

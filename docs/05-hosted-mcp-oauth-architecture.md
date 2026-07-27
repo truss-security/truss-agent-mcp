@@ -142,7 +142,7 @@ Validate before publish or certification:
 
 ```bash
 truss-mcp validate-remote https://api.truss-security.com/mcp --strict-oauth
-# or: truss-mcp doctor --remote
+# or: truss-mcp doctor --remote --strict-oauth
 ```
 
 ---

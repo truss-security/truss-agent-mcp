@@ -9,7 +9,7 @@ Truss threat intelligence via **[Model Context Protocol](https://modelcontextpro
 | **Remote (recommended)** | Cursor, Claude Desktop, MCP registries | OAuth → [`https://api.truss-security.com/mcp`](https://api.truss-security.com/mcp) |
 | **Local stdio (legacy)** | Air-gap / BYO-key / FilterQL REPL tools | `TRUSS_API_KEY` → REST |
 
-Hosted MCP (OAuth, Growth+ gate, five tools) is served by the Truss API. This package ships configs, `validate-remote` / `doctor --remote`, CLI search, and optional local stdio.
+Hosted MCP (OAuth, Growth+ gate, five tools) is served by the Truss API. This package ships configs, `validate-remote` / `doctor --remote`, CLI search, and optional local stdio. **Community** accounts cannot consent to hosted MCP.
 
 > **Not on npm yet.** Install from this repo (`npm install -g .`). After publish: `npm install -g @truss-security/truss-agent-mcp`.
 
@@ -19,8 +19,8 @@ Hosted MCP (OAuth, Growth+ gate, five tools) is served by the Truss API. This pa
 cd truss-agent-mcp
 npm install && npm run build
 npm install -g .
-truss-mcp doctor --remote   # OAuth path Cursor/Claude use
-truss-mcp init              # for CLI search / legacy stdio
+truss-mcp doctor --remote --strict-oauth   # OAuth path hosts use
+truss-mcp init                            # for CLI search / legacy stdio
 truss-mcp search
 ```
 
@@ -59,7 +59,7 @@ Full REPL reference: **[guides/truss-cli.md](guides/truss-cli.md)**
 `truss-mcp search` uses color-coded, ASCII-bordered output:
 
 - **You** — your message
-- **MCP** — live tool trace (`→ search_products`, `✓ 12 matches`)
+- **MCP** — live tool trace (`→ search_threats` on remote, or `→ search_products` on stdio)
 - **Results** — structured product table before the assistant summary
 - **Truss** — assistant reply (cyan), guided offers (yellow), FilterQL blocks (magenta)
 
@@ -135,7 +135,7 @@ Env load order (shell vars win): `~/.config/truss/env` → `~/.truss/.env` → `
 
 | Variable | Required for | Notes |
 |----------|--------------|-------|
-| `TRUSS_API_KEY` | local `mcp`, default `search` | From Truss dashboard |
+| `TRUSS_API_KEY` | local `mcp` / stdio `search` | From Truss dashboard (legacy air-gap only) |
 | `TRUSS_MCP_URL` | remote `search` / doctor | Default `https://api.truss-security.com/mcp` |
 | `TRUSS_MCP_OAUTH_TOKEN_FILE` | remote `search` | Bearer token from `validate-remote --save-token` |
 | `LLM_PROVIDER` | search | `anthropic` or `openai` — set via `init` |
@@ -153,7 +153,7 @@ Full list: [env.example](env.example)
 - [FilterQL cookbook](guides/filterql-cookbook.md)
 - [Cursor setup](guides/client-setup-cursor.md) · [Claude Desktop](guides/client-setup-claude-desktop.md)
 
-**Reference** — API contract, tools, architecture ([docs/README.md](docs/README.md) — docs 01–05)
+**Reference** — API contract, tools, architecture ([docs/README.md](docs/README.md) — docs 01–06)
 
 ## Development
 
@@ -171,6 +171,6 @@ Publish: [guides/publishing.md](guides/publishing.md) · Changes: [CHANGELOG.md]
 
 - [@truss-security/truss-sdk](https://www.npmjs.com/package/@truss-security/truss-sdk) — API client
 - [truss-agent](https://github.com/truss-security/truss-agent) — scheduled webhook delivery
-- [Truss docs](https://truss-security.github.io/truss-docs/data/sdk)
+- [Truss docs](https://github.com/truss-security/truss-docs) — public API / SDK documentation
 
 MIT
