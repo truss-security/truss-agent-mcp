@@ -1,0 +1,15 @@
+{
+  "name": "truss-mcp",
+  "displayName": "Truss Threat Intelligence",
+  "version": "1.1.0",
+  "description": "Query Truss security information, threat intelligence and threat actor naming conventions from Cursor via the hosted Truss MCP (OAuth). Build Truss Query Language (TQL) filters, pull security data, build detection rules, lookup IOCs, search threats, and pull STIX products. Requires Truss Growth+ plans.",
+  "author": {
+    "name": "Truss Security",
+    "email": "info@truss-security.com"
+  },
+  "homepage": "https://truss-security.com/mcp",
+  "repository": "https://github.com/truss-security/truss-agent-mcp",
+  "license": "MIT",
+  "keywords": ["mcp", "threat-intelligence", "stix", "ioc", "security", "truss"],
+  "logo": "assets/logo.png"
+}

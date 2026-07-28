@@ -27,18 +27,20 @@ Do **not** list `https://truss-security.com/mcp` as the MCP remote URL (HTML mar
 | Channel | Status | Notes |
 |---------|--------|--------|
 | Official MCP Registry | **Published** (v1.1.0, 2026-07-27) | `com.truss-security/truss-mcp` → `https://api.truss-security.com/mcp` |
-| cursor.directory | Ready after repo is public | Repo-root `.mcp.json` on default branch |
-| Cursor Marketplace | Pending | Needs `.cursor-plugin/plugin.json` + root `mcp.json` |
+| GitHub repo | **Public** (2026-07-27) | https://github.com/truss-security/truss-agent-mcp |
+| cursor.directory | **Submitted** (pending verify) | https://cursor.directory/plugins/truss-mcp — remote URL correct |
+| Cursor Marketplace | Packaging on `main` | `.cursor-plugin/plugin.json`, `mcp.json`, `assets/logo.png` — submit/review at cursor.com/marketplace/publish |
 | Secondary (mcp.so, PulseMCP, Smithery, awesome lists) | After Cursor | |
 
 ## Before making the repo public
 
-- [ ] `.env` remains gitignored; never `git add -f .env` or commit real keys
-- [ ] No private/404 sister-repo links in user-facing guides
-- [ ] `server.json` and `.mcp.json` are on `main`
-- [ ] CI gitleaks job is green on the merge PR
+- [x] `.env` remains gitignored; never `git add -f .env` or commit real keys
+- [x] No private/404 sister-repo links in user-facing guides
+- [x] `server.json` and `.mcp.json` are on `main`
+- [x] History scrubbed (internal docs, private repo names, personal emails)
+- [x] Repo visibility set to **public**
 - [ ] Registry gate still passes: `truss-mcp doctor --remote --strict-oauth`
-- [ ] Docs and guides match remote-first product truth (no stale `ask` / `npx` before npm publish)
+- [x] Docs and guides match remote-first product truth (no stale `ask` / `npx` before npm publish)
 
 ## Official registry publish
 
@@ -64,7 +66,11 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=com.truss-sec
 
 ## Cursor Marketplace (next)
 
-Add `.cursor-plugin/plugin.json`, root `mcp.json` (same remote URL), optional logo, then submit at https://cursor.com/marketplace/publish.
+Repo now has `.cursor-plugin/plugin.json`, root `mcp.json` (same remote URL), and `assets/logo.png`. Submit at https://cursor.com/marketplace/publish after those land on `main`.
+
+**Logotype URL for the publisher form** (once pushed):
+
+`https://raw.githubusercontent.com/truss-security/truss-agent-mcp/main/assets/logo.png`
 
 ## Internal metadata
 
