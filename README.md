@@ -2,6 +2,10 @@
 
 Truss threat intelligence via **[Model Context Protocol](https://modelcontextprotocol.io)** and a terminal assistant — one binary: **`truss-mcp`**.
 
+[![smithery badge](https://smithery.ai/badge/truss-security/truss-mcp)](https://smithery.ai/servers/truss-security/truss-mcp)
+
+[Truss MCP on Smithery](https://smithery.ai/servers/truss-security/truss-mcp)
+
 ## Two surfaces
 
 | Surface | Use for | Auth |
