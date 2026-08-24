@@ -16,7 +16,7 @@ This document is a design plan. Implementation follows the phased roadmap in [§
 2. **MCP control plane** — From Cursor/Claude (local stdio), create/update connections and jobs, run queries, and push results to named destinations.
 3. **Scheduled delivery** — Cron or interval jobs that pull via public product search and push formatted output to configured endpoints.
 4. **Env-backed secrets** — Store URLs, tokens, and API keys in `.env`; connections reference env var *names*, never raw secrets in JSON or tool args.
-5. **Native destination matrix** — Out-of-the-box adapters for chat, SIEM, EDR, and SOAR (see [§6](#6-destination-matrix)).
+5. **Native destination matrix** — Out-of-the-box adapters for chat, SIEM, EDR, SOAR, and NGFW (see [§6](#6-destination-matrix)).
 6. **Public API boundary** — Enrichment remains `POST /product/search`, `POST /product/search/stix`, `GET /product/{id}/stix` only. Push is customer egress.
 
 ### Non-goals
@@ -50,7 +50,7 @@ Operators must explore in MCP, then manually copy filters into truss-agent jobs 
 | Investigation + connection/job/push tools | **Local** `truss-mcp mcp` |
 | Headless scheduler | **Local** `truss-mcp serve` (same config store) |
 | Hosted MCP | Investigation only (existing five tools) |
-| Destination adapters | Pluggable registry in this package (chat + SIEM + EDR + SOAR) |
+| Destination adapters | Pluggable registry in this package (chat + SIEM + EDR + SOAR + NGFW) |
 | Secrets | `.env` only; config JSON holds env refs |
 
 ```mermaid
@@ -72,6 +72,7 @@ flowchart LR
     SIEM[SIEMs]
     EDR[EDRs]
     SOAR[SOARs]
+    NGFW[NGFWs]
   end
   Cursor --> Tools
   Tools --> Search
@@ -83,6 +84,7 @@ flowchart LR
   Fmt --> SIEM
   Fmt --> EDR
   Fmt --> SOAR
+  Fmt --> NGFW
 ```
 
 ---
@@ -205,11 +207,13 @@ Generalize truss-agent’s `IConnectionModule` beyond webhook-only `getWebhookUr
 | `siem` | Event / IOC ingest for detection and search |
 | `edr` | IOC / indicator upload or custom detection hooks |
 | `soar` | Incident / case creation and optional playbook triggers |
+| `ngfw` | Network enforcement objects (EDLs, threat feeds, address/URL block lists) |
 
 | Capability | Meaning |
 |------------|---------|
 | `push_products` | Send product metadata / summaries |
 | `push_iocs` | Send indicator payloads (opt-in; aligns with MCP `include_indicators`) |
+| `push_edl` | Publish IP/domain/URL lists for firewall External Dynamic Lists / threat feeds |
 | `create_detection_rule` | Deploy or draft a detection rule via provider API (where supported) |
 | `healthcheck` | Validate credentials / reachability without sending CTI |
 
@@ -219,7 +223,7 @@ Generalize truss-agent’s `IConnectionModule` beyond webhook-only `getWebhookUr
 interface ConnectionBase {
   name: string;
   type: string;           // registry typeId, e.g. "discord" | "splunk-hec"
-  category: "chat" | "siem" | "edr" | "soar";
+  category: "chat" | "siem" | "edr" | "soar" | "ngfw";
   description?: string;
   enabled: boolean;
   query?: ConnectionQuery;
@@ -246,6 +250,8 @@ interface IConnectionModule<T extends ConnectionBase> {
   ): Promise<void>;
 
   pushIocs?(...): Promise<void>;
+  /** NGFW / feed destinations: extract network observables and publish as EDL or threat feed. */
+  pushEdl?(...): Promise<void>;
   createDetectionRule?(...): Promise<DetectionRuleResult>;
 }
 ```
@@ -260,6 +266,7 @@ Registry pattern mirrors truss-agent `ConnectionRegistry`: register modules once
 | `metadata` | Product cards / awareness (chat default) |
 | `report` | Executive summary (chat digests) |
 | `detection_rule` | Provider-native rule text or API payload (capability-gated) |
+| `edl` | Flat or typed network observables (IP, domain, URL, hash) for NGFW block/allow lists |
 
 **IOC safety:** Default search/summary paths remain IOC-safe (same as today’s MCP tools). Jobs and pushes that need indicators must set an explicit opt-in (e.g. `includeIndicators: true` on the job or push tool), consistent with `include_indicators` on search tools.
 
@@ -278,6 +285,37 @@ Windows: interval schedule → window equals interval (dedupe); else `windowMinu
 ## 6. Destination matrix
 
 Locked out-of-the-box adapters. Each row lists primary ingest mechanism and required env refs (names are conventions; users may choose any env name as long as the connection field points at it).
+
+### 6.0 How categories differ (push semantics)
+
+All categories share the same pipeline — FilterQL search → format → connection module — but **what** is pushed and **why** differs:
+
+```mermaid
+flowchart TB
+  Search[Truss_product_search]
+  Search --> ChatPush[chat_human_digest]
+  Search --> SiemPush[siem_log_and_IOC_ingest]
+  Search --> EdrPush[edr_host_IOC_upload]
+  Search --> SoarPush[soar_incident_or_case]
+  Search --> NgfwPush[ngfw_EDL_or_threat_feed]
+```
+
+| Category | Primary intent | Typical payload | Mutates customer security posture? |
+|----------|----------------|-----------------|--------------------------------------|
+| **chat** | Notify analysts | Markdown / embeds / Adaptive Cards | No |
+| **siem** | Detect & hunt later | Events, product JSON, IOC objects into a searchable store | No (append observability) |
+| **edr** | Host-level block/hunt | Custom IOCs / indicators via vendor TI API | Yes (endpoint detections / blocks) |
+| **soar** | Orchestrate response | Incident, container, webhook story trigger | Yes (cases / playbooks) |
+| **ngfw** | Network-edge enforce | External Dynamic Lists, address groups, URL categories, threat intel feeds | Yes (firewall policy objects) |
+
+**NGFW vs the others**
+
+- Closest sibling is **EDR `push_iocs`**: both consume network/host observables for enforcement. NGFW targets **network path** (IP/domain/URL); EDR targets **endpoint** (hash, process, host IOC).
+- Unlike **SIEM**, NGFW push is not “store this event for queries” — it publishes a **list the firewall polls or syncs**, then policy references that list to allow/deny.
+- Unlike **SOAR**, the agent does not open a ticket; it updates **policy feed objects**. SOAR may *also* call an NGFW later via a playbook; that remains the SOAR’s job.
+- Prefer `outputFormat: edl` (or `ioc` with `includeIndicators: true`) and connection settings that select observable types (`ipv4`, `domain`, `url`). Hashes are usually **not** useful on classic NGFW EDLs.
+
+**Shared secret / config pattern** remains identical: env refs in `.env`, no secrets in `connections.json` or MCP tool args.
 
 ### 6.1 Chat (parity with truss-agent)
 
@@ -322,31 +360,65 @@ Port adapters and formatters from truss-agent; switch to env refs.
 | `torq` | Torq | Webhook / public integration HTTP | `webhookUrlEnv` | integration headers via additional `*Env` | push_products (JSON envelope) |
 | `swimlane` | Swimlane Turbine | REST record / playbook trigger | `baseUrlEnv`, `apiTokenEnv` | applicationId, recordType | push_products → record / case |
 
-### 6.5 Capability matrix (summary)
+### 6.5 NGFWs (5)
 
-| Type | push_products | push_iocs | create_detection_rule | healthcheck |
-|------|:-------------:|:---------:|:---------------------:|:-----------:|
-| discord / slack / ms-teams | yes | via ioc format | — | yes (HTTP) |
-| splunk-hec | yes | yes | optional (saved search API later) | yes |
-| microsoft-sentinel | yes | yes | optional (Analytics rule API later) | yes |
-| google-secops | yes | yes | phase later | yes |
-| cortex-xsiam | yes | yes | phase later | yes |
-| crowdstrike-ng-siem | yes | yes | — | yes |
-| sumo-logic | yes | yes | — | yes |
-| databricks-panther | yes | yes | phase later | yes |
-| crowdstrike-falcon | limited | yes | optional | yes |
-| microsoft-defender-endpoint | limited | yes | — | yes |
-| sentinelone | limited | yes | — | yes |
-| cortex-xdr | limited | yes | — | yes |
-| trend-micro | limited | yes | — | yes |
-| tanium | limited | yes | — | yes |
-| cortex-xsoar | yes | yes | optional | yes |
-| splunk-soar | yes | yes | — | yes |
-| tines | yes | yes | — | yes |
-| torq | yes | yes | — | yes |
-| swimlane | yes | yes | — | yes |
+Top enterprise NGFW shortlist (2025–2026 Hybrid Mesh / NGFW market): Palo Alto, Fortinet, Check Point, Cisco, Juniper (HPE).
+
+| Type ID | Label | Primary push API | Required env refs | Optional settings | Formats / notes |
+|---------|-------|------------------|-------------------|-------------------|-----------------|
+| `palo-alto-ngfw` | Palo Alto Networks (PAN-OS / Strata) | External Dynamic Lists via Panorama or PAN-OS XML/REST; or publish HTTPS EDL the device pulls | `baseUrlEnv`, `apiKeyEnv` (or `edlPublishUrlEnv` for pull-mode hosting) | deviceGroup, edlName, observableTypes | `edl` / `ioc` → EDL entries; policy must reference the EDL |
+| `fortinet-fortigate` | Fortinet FortiGate | FortiManager / FortiOS threat feed / external resource API | `baseUrlEnv`, `apiTokenEnv` | adom, feedName, observableTypes | `edl` → external connector / threat feed |
+| `check-point-ngfw` | Check Point Quantum | Management API custom intelligence / IOC feed objects | `baseUrlEnv`, `apiKeyEnv` (or `usernameEnv` + `passwordEnv`) | domain, feedName | `edl` / `ioc` → network / custom intel objects |
+| `cisco-secure-firewall` | Cisco Secure Firewall (FTD / FMC) | FMC REST: network groups, URL objects, or TID/intel feed | `baseUrlEnv`, `usernameEnv`, `passwordEnv` (or `apiTokenEnv`) | domainUUID, objectName | `edl` → network/URL group update or feed |
+| `juniper-srx` | Juniper SRX (HPE Juniper) | Junos Space / SecIntel / dynamic address group APIs | `baseUrlEnv`, `apiTokenEnv` | feedName, addressBook | `edl` → dynamic address / SecIntel feed |
+
+**Push modes (both supported by the module contract):**
+
+1. **Push/API mode** — agent authenticates to the vendor manager (Panorama, FortiManager, FMC, Check Point Mgmt, Juniper) and creates/updates feed or object group entries.
+2. **Pull/EDL mode** — agent (or a tiny local sidecar) exposes an authenticated HTTPS list URL; the NGFW’s EDL/external-resource object **polls** that URL. Secrets still live in `.env` (`edlPublishUrlEnv` is the public list endpoint the firewall uses; signing keys stay local).
+
+Jobs targeting NGFW should set `includeIndicators: true` and usually `outputFormat: edl`. Empty indicator sets → no policy update (same fail-soft as empty SIEM pushes).
+
+### 6.6 Capability matrix (summary)
+
+| Type | push_products | push_iocs | push_edl | create_detection_rule | healthcheck |
+|------|:-------------:|:---------:|:--------:|:---------------------:|:-----------:|
+| discord / slack / ms-teams | yes | via ioc format | — | — | yes (HTTP) |
+| splunk-hec | yes | yes | — | optional (saved search API later) | yes |
+| microsoft-sentinel | yes | yes | — | optional (Analytics rule API later) | yes |
+| google-secops | yes | yes | — | phase later | yes |
+| cortex-xsiam | yes | yes | — | phase later | yes |
+| crowdstrike-ng-siem | yes | yes | — | — | yes |
+| sumo-logic | yes | yes | — | — | yes |
+| databricks-panther | yes | yes | — | phase later | yes |
+| crowdstrike-falcon | limited | yes | — | optional | yes |
+| microsoft-defender-endpoint | limited | yes | — | — | yes |
+| sentinelone | limited | yes | — | — | yes |
+| cortex-xdr | limited | yes | — | — | yes |
+| trend-micro | limited | yes | — | — | yes |
+| tanium | limited | yes | — | — | yes |
+| cortex-xsoar | yes | yes | — | optional | yes |
+| splunk-soar | yes | yes | — | — | yes |
+| tines | yes | yes | — | — | yes |
+| torq | yes | yes | — | — | yes |
+| swimlane | yes | yes | — | — | yes |
+| palo-alto-ngfw | — | limited | yes | — | yes |
+| fortinet-fortigate | — | limited | yes | — | yes |
+| check-point-ngfw | — | limited | yes | — | yes |
+| cisco-secure-firewall | — | limited | yes | — | yes |
+| juniper-srx | — | limited | yes | — | yes |
 
 “Phase later” means schema and healthcheck ship with the adapter; full rule-deployment APIs can follow without changing the registry shape.
+
+**Category→capability cheat sheet**
+
+| If the goal is… | Prefer category | Primary capability |
+|-----------------|-----------------|--------------------|
+| Analyst sees a digest in Slack/Discord/Teams | `chat` | `push_products` |
+| SOC can query Truss hits in Splunk/Sentinel/etc. | `siem` | `push_products` / `push_iocs` |
+| Endpoints block or hunt on hashes/IOCs | `edr` | `push_iocs` |
+| Open a case / kick a playbook | `soar` | `push_products` |
+| Firewall drops traffic to bad IPs/domains/URLs | `ngfw` | `push_edl` |
 
 ---
 
@@ -389,7 +461,7 @@ Port QueryManager semantics from truss-agent into this package.
 | `schedule` | Positive int = interval minutes; string = 5-field cron |
 | `connectionName` | Required; destination must exist |
 | `enabled` | Job-level gate **in addition to** `connection.enabled` (fix agent gap where job `enabled` was stripped) |
-| `includeIndicators` | Default `false`; required `true` for IOC-heavy formats to SIEM/EDR |
+| `includeIndicators` | Default `false`; required `true` for IOC-heavy formats to SIEM/EDR/NGFW |
 
 ### 7.2 Runtime behavior (`truss-mcp serve`)
 
@@ -476,7 +548,7 @@ New / ported areas under this repo (illustrative):
 ```
 src/
   delivery/
-    connections/          # registry + per-type modules (chat/siem/edr/soar)
+    connections/          # registry + per-type modules (chat/siem/edr/soar/ngfw)
     jobs/                 # Zod schemas, load/save
     formatters/           # ioc / metadata / report (port from truss-agent)
     query-manager.ts      # scheduler
@@ -506,10 +578,11 @@ Shared search payload builder remains [`src/lib/build-product-search-payload.ts`
 | **3 — SIEM adapters** | `splunk-hec`, `microsoft-sentinel`, `google-secops`, `cortex-xsiam`, `crowdstrike-ng-siem`, `sumo-logic`, `databricks-panther` | healthcheck + push_products/ioc for each; example env docs |
 | **4 — EDR adapters** | Falcon, MDE, SentinelOne, Cortex XDR, Trend Micro, Tanium | IOC push + healthcheck |
 | **5 — SOAR adapters** | XSOAR, Splunk SOAR, Tines, Torq, Swimlane | Incident/container/webhook/record push + healthcheck |
-| **6 — Migration** | Import truss-agent config; update `guides/truss-agent-vs-mcp.md` to “unified local agent”; example configs | Documented migration path; no dual-daemon requirement |
-| **7 — Hardening** | Unit/integration tests; secret audit; serial queue + retry budget; IOC defaults; `doctor` checks for unset refs | CI green; security review of logs/tool output |
+| **6 — NGFW adapters** | Palo Alto, FortiGate, Check Point, Cisco Secure Firewall, Juniper SRX | `push_edl` (API and/or pull-EDL modes) + healthcheck |
+| **7 — Migration** | Import truss-agent config; update `guides/truss-agent-vs-mcp.md` to “unified local agent”; example configs | Documented migration path; no dual-daemon requirement |
+| **8 — Hardening** | Unit/integration tests; secret audit; serial queue + retry budget; IOC defaults; `doctor` checks for unset refs | CI green; security review of logs/tool output |
 
-Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM work; Phases 3–5 are parallelizable per adapter once the module contract is stable.
+Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM work; Phases 3–6 are parallelizable per adapter once the module contract is stable. NGFW benefits from shared IOC→observable extraction used by EDR.
 
 ---
 
@@ -552,12 +625,13 @@ Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM wor
 
 ## 13. Open implementation notes
 
-- Exact HTTP payload shapes per SIEM/EDR/SOAR belong in adapter modules and provider-specific guide snippets—not in the public Truss API contract.
+- Exact HTTP payload shapes per SIEM/EDR/SOAR/NGFW belong in adapter modules and provider-specific guide snippets—not in the public Truss API contract.
 - Azure Sentinel DCR vs classic Shared Key: support both via optional env-ref sets on one `microsoft-sentinel` type.
 - Google SecOps credentials may be service-account JSON (env file path or base64) vs API key — pick one env-ref pattern per deployment and document in `env.example`.
 - CrowdStrike appears twice by design: **NG-SIEM/LogScale** (SIEM ingest) vs **Falcon** (EDR IOC API).
-- Palo Alto appears twice by design: **Cortex XSIAM** (SIEM) vs **Cortex XDR** (EDR).
+- Palo Alto appears thrice by design: **Cortex XSIAM** (SIEM), **Cortex XDR** (EDR), **PAN-OS / Strata NGFW** (EDL enforcement).
 - Databricks (formerly Panther): prefer Panther-compatible ingest while Databricks branding settles; keep type id `databricks-panther` stable for configs.
+- NGFW EDL pull-mode may require a small local HTTPS publisher; keep it optional so API-push-only customers are not forced to expose an endpoint.
 - Dashboard export of agent config should eventually emit env-ref JSON + `.env` template (cross-repo checklist item when delivery ships).
 
 ---
@@ -569,5 +643,6 @@ Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM wor
 | 2026-08-24 | Initial unified delivery architecture plan |
 | 2026-08-24 | Destination matrix → top 5 SIEM / EDR / SOAR (added Google SecOps, Cortex XDR, Trend Micro, Tines, Swimlane) |
 | 2026-08-24 | SIEM + Sumo Logic, Databricks (Panther); EDR + Tanium |
+| 2026-08-24 | Added NGFW category (Palo Alto, FortiGate, Check Point, Cisco, Juniper) + push semantics vs SIEM/EDR/SOAR |
 
 Prev: [06 — Cross-repo OAuth checklist](./06-cross-repo-oauth-checklist.md)
