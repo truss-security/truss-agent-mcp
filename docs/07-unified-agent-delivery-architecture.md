@@ -289,30 +289,38 @@ Locked out-of-the-box adapters. Each row lists primary ingest mechanism and requ
 
 Port adapters and formatters from truss-agent; switch to env refs.
 
-### 6.2 SIEMs (4)
+### 6.2 SIEMs (7)
 
 | Type ID | Label | Primary API | Required env refs | Optional settings | Formats |
 |---------|-------|-------------|-------------------|-------------------|---------|
 | `splunk-hec` | Splunk (HEC) | HTTP Event Collector | `hecUrlEnv`, `hecTokenEnv` | index, sourcetype, source, verifyTLS | ioc, metadata, report |
+| `microsoft-sentinel` | Microsoft Sentinel | Log Analytics Data Collector API or Azure Monitor ingest | `workspaceIdEnv`, `sharedKeyEnv` (or `dcrImmutableIdEnv` + `dceUrlEnv` + `streamName` for DCR) | logType / stream | ioc, metadata |
+| `google-secops` | Google SecOps (Chronicle) | SecOps / Chronicle ingestion API | `apiUrlEnv`, `credentialsJsonEnv` (or `apiKeyEnv`) | customerId, logType | ioc, metadata |
 | `cortex-xsiam` | Palo Alto Cortex XSIAM | XSIAM / XDR ingest HTTP API | `apiUrlEnv`, `apiKeyEnv` | vendor, product, severity map | ioc, metadata |
 | `crowdstrike-ng-siem` | CrowdStrike Falcon Next-Gen SIEM / LogScale | LogScale ingest / Falcon SIEM ingest | `ingestUrlEnv`, `ingestTokenEnv` | repository, parser | ioc, metadata |
-| `microsoft-sentinel` | Microsoft Sentinel | Log Analytics Data Collector API or Azure Monitor ingest | `workspaceIdEnv`, `sharedKeyEnv` (or `dcrImmutableIdEnv` + `dceUrlEnv` + `streamName` for DCR) | logType / stream | ioc, metadata |
+| `sumo-logic` | Sumo Logic | HTTP Logs & Metrics Source (or Hosted Collector HTTP) | `httpSourceUrlEnv` | sourceCategory, fields | ioc, metadata, report |
+| `databricks-panther` | Databricks (formerly Panther) | Panther / Databricks SIEM ingest HTTP or log source API | `apiUrlEnv`, `apiTokenEnv` | logType, stream | ioc, metadata |
 
-### 6.3 EDRs (3)
+### 6.3 EDRs (6)
 
 | Type ID | Label | Primary API | Required env refs | Optional settings | Formats / notes |
 |---------|-------|-------------|-------------------|-------------------|-----------------|
 | `crowdstrike-falcon` | CrowdStrike Falcon | Falcon IOC / indicator Management API | `baseUrlEnv`, `clientIdEnv`, `clientSecretEnv` | severity, platforms | push_iocs; detection_rule via Custom IOCs / queries where API allows |
 | `microsoft-defender-endpoint` | Microsoft Defender for Endpoint | Graph / MDE TI indicators API | `tenantIdEnv`, `clientIdEnv`, `clientSecretEnv` | action, expiration | push_iocs |
 | `sentinelone` | SentinelOne | Management API (threats / iocs) | `baseUrlEnv`, `apiTokenEnv` | siteIds, accountIds | push_iocs |
+| `cortex-xdr` | Palo Alto Cortex XDR | XDR / IOC API | `apiUrlEnv`, `apiKeyEnv` | severity, expiration | push_iocs |
+| `trend-micro` | Trend Micro (Vision One / Apex One) | Vision One Threat Intelligence / IOC API | `baseUrlEnv`, `apiTokenEnv` | product, expiration | push_iocs |
+| `tanium` | Tanium | Tanium Threat Response / Intel API | `baseUrlEnv`, `apiTokenEnv` (or `usernameEnv` + `passwordEnv`) | intel set, expiration | push_iocs |
 
-### 6.4 SOARs (3)
+### 6.4 SOARs (5)
 
 | Type ID | Label | Primary API | Required env refs | Optional settings | Formats / notes |
 |---------|-------|-------------|-------------------|-------------------|-----------------|
 | `cortex-xsoar` | Cortex XSOAR | REST incidents / indicators | `baseUrlEnv`, `apiKeyEnv` | playbookId, type | push_products → incident; optional create_detection_rule |
 | `splunk-soar` | Splunk SOAR (Phantom) | REST container / artifact create | `baseUrlEnv`, `authTokenEnv` | label, severity | push_products → container + artifacts |
+| `tines` | Tines | Webhook / story trigger HTTP | `webhookUrlEnv` | optional shared secret via `webhookSecretEnv` | push_products (JSON envelope) |
 | `torq` | Torq | Webhook / public integration HTTP | `webhookUrlEnv` | integration headers via additional `*Env` | push_products (JSON envelope) |
+| `swimlane` | Swimlane Turbine | REST record / playbook trigger | `baseUrlEnv`, `apiTokenEnv` | applicationId, recordType | push_products → record / case |
 
 ### 6.5 Capability matrix (summary)
 
@@ -320,15 +328,23 @@ Port adapters and formatters from truss-agent; switch to env refs.
 |------|:-------------:|:---------:|:---------------------:|:-----------:|
 | discord / slack / ms-teams | yes | via ioc format | — | yes (HTTP) |
 | splunk-hec | yes | yes | optional (saved search API later) | yes |
+| microsoft-sentinel | yes | yes | optional (Analytics rule API later) | yes |
+| google-secops | yes | yes | phase later | yes |
 | cortex-xsiam | yes | yes | phase later | yes |
 | crowdstrike-ng-siem | yes | yes | — | yes |
-| microsoft-sentinel | yes | yes | optional (Analytics rule API later) | yes |
+| sumo-logic | yes | yes | — | yes |
+| databricks-panther | yes | yes | phase later | yes |
 | crowdstrike-falcon | limited | yes | optional | yes |
 | microsoft-defender-endpoint | limited | yes | — | yes |
 | sentinelone | limited | yes | — | yes |
+| cortex-xdr | limited | yes | — | yes |
+| trend-micro | limited | yes | — | yes |
+| tanium | limited | yes | — | yes |
 | cortex-xsoar | yes | yes | optional | yes |
 | splunk-soar | yes | yes | — | yes |
+| tines | yes | yes | — | yes |
 | torq | yes | yes | — | yes |
+| swimlane | yes | yes | — | yes |
 
 “Phase later” means schema and healthcheck ship with the adapter; full rule-deployment APIs can follow without changing the registry shape.
 
@@ -487,9 +503,9 @@ Shared search payload builder remains [`src/lib/build-product-search-payload.ts`
 |-------|--------|----------------|
 | **1 — Foundation** | Config bundle + env-ref secrets; port Discord/Slack/Teams; port QueryManager; `truss-mcp serve` | Chat parity with truss-agent using `.env` refs; one-shot + scheduled push works |
 | **2 — MCP control plane** | Connection/job/push tools; instructions; docs/04; tests | Local MCP can create connection + job and `run_job_now` / ad-hoc push |
-| **3 — SIEM adapters** | `splunk-hec`, `cortex-xsiam`, `crowdstrike-ng-siem`, `microsoft-sentinel` | healthcheck + push_products/ioc for each; example env docs |
-| **4 — EDR adapters** | Falcon, MDE, SentinelOne | IOC push + healthcheck |
-| **5 — SOAR adapters** | XSOAR, Splunk SOAR, Torq | Incident/container/webhook push + healthcheck |
+| **3 — SIEM adapters** | `splunk-hec`, `microsoft-sentinel`, `google-secops`, `cortex-xsiam`, `crowdstrike-ng-siem`, `sumo-logic`, `databricks-panther` | healthcheck + push_products/ioc for each; example env docs |
+| **4 — EDR adapters** | Falcon, MDE, SentinelOne, Cortex XDR, Trend Micro, Tanium | IOC push + healthcheck |
+| **5 — SOAR adapters** | XSOAR, Splunk SOAR, Tines, Torq, Swimlane | Incident/container/webhook/record push + healthcheck |
 | **6 — Migration** | Import truss-agent config; update `guides/truss-agent-vs-mcp.md` to “unified local agent”; example configs | Documented migration path; no dual-daemon requirement |
 | **7 — Hardening** | Unit/integration tests; secret audit; serial queue + retry budget; IOC defaults; `doctor` checks for unset refs | CI green; security review of logs/tool output |
 
@@ -538,7 +554,10 @@ Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM wor
 
 - Exact HTTP payload shapes per SIEM/EDR/SOAR belong in adapter modules and provider-specific guide snippets—not in the public Truss API contract.
 - Azure Sentinel DCR vs classic Shared Key: support both via optional env-ref sets on one `microsoft-sentinel` type.
+- Google SecOps credentials may be service-account JSON (env file path or base64) vs API key — pick one env-ref pattern per deployment and document in `env.example`.
 - CrowdStrike appears twice by design: **NG-SIEM/LogScale** (SIEM ingest) vs **Falcon** (EDR IOC API).
+- Palo Alto appears twice by design: **Cortex XSIAM** (SIEM) vs **Cortex XDR** (EDR).
+- Databricks (formerly Panther): prefer Panther-compatible ingest while Databricks branding settles; keep type id `databricks-panther` stable for configs.
 - Dashboard export of agent config should eventually emit env-ref JSON + `.env` template (cross-repo checklist item when delivery ships).
 
 ---
@@ -548,5 +567,7 @@ Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM wor
 | Date | Change |
 |------|--------|
 | 2026-08-24 | Initial unified delivery architecture plan |
+| 2026-08-24 | Destination matrix → top 5 SIEM / EDR / SOAR (added Google SecOps, Cortex XDR, Trend Micro, Tines, Swimlane) |
+| 2026-08-24 | SIEM + Sumo Logic, Databricks (Panther); EDR + Tanium |
 
 Prev: [06 — Cross-repo OAuth checklist](./06-cross-repo-oauth-checklist.md)
