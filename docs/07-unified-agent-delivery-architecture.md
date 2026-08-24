@@ -207,13 +207,13 @@ Generalize truss-agent’s `IConnectionModule` beyond webhook-only `getWebhookUr
 | `siem` | Event / IOC ingest for detection and search |
 | `edr` | IOC / indicator upload or custom detection hooks |
 | `soar` | Incident / case creation and optional playbook triggers |
-| `ngfw` | Network enforcement objects (EDLs, threat feeds, address/URL block lists) |
+| `ngfw` | Network enforcement via **EDLs** (External Dynamic Lists) and vendor-equivalent threat feeds / address–URL objects |
 
 | Capability | Meaning |
 |------------|---------|
 | `push_products` | Send product metadata / summaries |
 | `push_iocs` | Send indicator payloads (opt-in; aligns with MCP `include_indicators`) |
-| `push_edl` | Publish IP/domain/URL lists for firewall External Dynamic Lists / threat feeds |
+| `push_edl` | Publish IP/domain/URL entries to an **EDL** (External Dynamic List) or vendor-equivalent feed the NGFW uses in policy |
 | `create_detection_rule` | Deploy or draft a detection rule via provider API (where supported) |
 | `healthcheck` | Validate credentials / reachability without sending CTI |
 
@@ -266,7 +266,7 @@ Registry pattern mirrors truss-agent `ConnectionRegistry`: register modules once
 | `metadata` | Product cards / awareness (chat default) |
 | `report` | Executive summary (chat digests) |
 | `detection_rule` | Provider-native rule text or API payload (capability-gated) |
-| `edl` | Flat or typed network observables (IP, domain, URL, hash) for NGFW block/allow lists |
+| `edl` | EDL-oriented list of network observables (IP, domain, URL) for NGFW policy — see [§6.0.1](#601-what-is-an-edl-external-dynamic-list) |
 
 **IOC safety:** Default search/summary paths remain IOC-safe (same as today’s MCP tools). Jobs and pushes that need indicators must set an explicit opt-in (e.g. `includeIndicators: true` on the job or push tool), consistent with `include_indicators` on search tools.
 
@@ -306,13 +306,33 @@ flowchart TB
 | **siem** | Detect & hunt later | Events, product JSON, IOC objects into a searchable store | No (append observability) |
 | **edr** | Host-level block/hunt | Custom IOCs / indicators via vendor TI API | Yes (endpoint detections / blocks) |
 | **soar** | Orchestrate response | Incident, container, webhook story trigger | Yes (cases / playbooks) |
-| **ngfw** | Network-edge enforce | External Dynamic Lists, address groups, URL categories, threat intel feeds | Yes (firewall policy objects) |
+| **ngfw** | Network-edge enforce | **EDL** (External Dynamic List) entries, address groups, URL categories, threat intel feeds | Yes (firewall policy objects) |
+
+#### 6.0.1 What is an EDL (External Dynamic List)?
+
+An **EDL (External Dynamic List)** is a firewall feature—popularized by Palo Alto Networks PAN-OS, with equivalents on other NGFWs—that lets policy reference a **remotely maintained list of observables** (typically IP addresses, domains, or URLs) instead of hard-coding thousands of static objects.
+
+How it works in practice:
+
+1. Someone (or an automation like this agent) publishes a list of indicators, either by **pushing** them into the firewall/manager API or by hosting a plain-text/HTTPS list the device can **pull**.
+2. The NGFW creates an EDL (or vendor-equivalent) object that points at that list and refreshes on an interval.
+3. Security policy rules reference the EDL object (e.g. “deny traffic whose destination IP is in `truss-malicious-ips`”).
+4. When the list updates, enforcement updates **without** rewriting the policy rule itself.
+
+| Concept | Meaning for this agent |
+|---------|------------------------|
+| **EDL** | The policy-facing list object on the NGFW (or the pullable feed that backs it) |
+| **`outputFormat: edl`** | Format Truss products into a flat/typed observable list suitable for an EDL |
+| **`push_edl` capability** | Adapter method that updates the vendor EDL / external resource / threat feed |
+| **Vendor equivalents** | Same idea under other names: Fortinet *external connector / threat feed*, Check Point *custom intelligence / IOC feed*, Cisco *network group or TID feed*, Juniper *dynamic address group / SecIntel* |
+
+EDLs are **not** SIEM log events and **not** SOAR tickets. They are **network enforcement inputs**. File hashes are usually omitted from classic EDLs (IP/domain/URL only); hash-based blocking belongs on **EDR** adapters.
 
 **NGFW vs the others**
 
-- Closest sibling is **EDR `push_iocs`**: both consume network/host observables for enforcement. NGFW targets **network path** (IP/domain/URL); EDR targets **endpoint** (hash, process, host IOC).
-- Unlike **SIEM**, NGFW push is not “store this event for queries” — it publishes a **list the firewall polls or syncs**, then policy references that list to allow/deny.
-- Unlike **SOAR**, the agent does not open a ticket; it updates **policy feed objects**. SOAR may *also* call an NGFW later via a playbook; that remains the SOAR’s job.
+- Closest sibling is **EDR `push_iocs`**: both consume observables for enforcement. NGFW targets the **network path** (IP/domain/URL via EDL); EDR targets the **endpoint** (hash, process, host IOC).
+- Unlike **SIEM**, NGFW push is not “store this event for queries” — it updates an **EDL** (or equivalent) that policy references to allow/deny.
+- Unlike **SOAR**, the agent does not open a ticket; it updates **EDL / feed objects**. SOAR may *also* call an NGFW later via a playbook; that remains the SOAR’s job.
 - Prefer `outputFormat: edl` (or `ioc` with `includeIndicators: true`) and connection settings that select observable types (`ipv4`, `domain`, `url`). Hashes are usually **not** useful on classic NGFW EDLs.
 
 **Shared secret / config pattern** remains identical: env refs in `.env`, no secrets in `connections.json` or MCP tool args.
@@ -364,20 +384,22 @@ Port adapters and formatters from truss-agent; switch to env refs.
 
 Top enterprise NGFW shortlist (2025–2026 Hybrid Mesh / NGFW market): Palo Alto, Fortinet, Check Point, Cisco, Juniper (HPE).
 
+Primary delivery mechanism for this category is the **EDL (External Dynamic List)** pattern defined in [§6.0.1](#601-what-is-an-edl-external-dynamic-list). Vendor product names differ; the agent capability remains `push_edl`.
+
 | Type ID | Label | Primary push API | Required env refs | Optional settings | Formats / notes |
 |---------|-------|------------------|-------------------|-------------------|-----------------|
-| `palo-alto-ngfw` | Palo Alto Networks (PAN-OS / Strata) | External Dynamic Lists via Panorama or PAN-OS XML/REST; or publish HTTPS EDL the device pulls | `baseUrlEnv`, `apiKeyEnv` (or `edlPublishUrlEnv` for pull-mode hosting) | deviceGroup, edlName, observableTypes | `edl` / `ioc` → EDL entries; policy must reference the EDL |
-| `fortinet-fortigate` | Fortinet FortiGate | FortiManager / FortiOS threat feed / external resource API | `baseUrlEnv`, `apiTokenEnv` | adom, feedName, observableTypes | `edl` → external connector / threat feed |
-| `check-point-ngfw` | Check Point Quantum | Management API custom intelligence / IOC feed objects | `baseUrlEnv`, `apiKeyEnv` (or `usernameEnv` + `passwordEnv`) | domain, feedName | `edl` / `ioc` → network / custom intel objects |
-| `cisco-secure-firewall` | Cisco Secure Firewall (FTD / FMC) | FMC REST: network groups, URL objects, or TID/intel feed | `baseUrlEnv`, `usernameEnv`, `passwordEnv` (or `apiTokenEnv`) | domainUUID, objectName | `edl` → network/URL group update or feed |
-| `juniper-srx` | Juniper SRX (HPE Juniper) | Junos Space / SecIntel / dynamic address group APIs | `baseUrlEnv`, `apiTokenEnv` | feedName, addressBook | `edl` → dynamic address / SecIntel feed |
+| `palo-alto-ngfw` | Palo Alto Networks (PAN-OS / Strata) | Native **EDL** via Panorama or PAN-OS XML/REST; or publish HTTPS list the device pulls | `baseUrlEnv`, `apiKeyEnv` (or `edlPublishUrlEnv` for pull-mode hosting) | deviceGroup, edlName, observableTypes | `edl` / `ioc` → EDL entries; a security rule must **reference** the EDL object |
+| `fortinet-fortigate` | Fortinet FortiGate | FortiManager / FortiOS threat feed / external resource (EDL-equivalent) | `baseUrlEnv`, `apiTokenEnv` | adom, feedName, observableTypes | `edl` → external connector / threat feed |
+| `check-point-ngfw` | Check Point Quantum | Management API custom intelligence / IOC feed (EDL-equivalent) | `baseUrlEnv`, `apiKeyEnv` (or `usernameEnv` + `passwordEnv`) | domain, feedName | `edl` / `ioc` → network / custom intel objects |
+| `cisco-secure-firewall` | Cisco Secure Firewall (FTD / FMC) | FMC REST: network groups, URL objects, or TID/intel feed (EDL-equivalent) | `baseUrlEnv`, `usernameEnv`, `passwordEnv` (or `apiTokenEnv`) | domainUUID, objectName | `edl` → network/URL group update or feed |
+| `juniper-srx` | Juniper SRX (HPE Juniper) | Junos Space / SecIntel / dynamic address group (EDL-equivalent) | `baseUrlEnv`, `apiTokenEnv` | feedName, addressBook | `edl` → dynamic address / SecIntel feed |
 
 **Push modes (both supported by the module contract):**
 
-1. **Push/API mode** — agent authenticates to the vendor manager (Panorama, FortiManager, FMC, Check Point Mgmt, Juniper) and creates/updates feed or object group entries.
-2. **Pull/EDL mode** — agent (or a tiny local sidecar) exposes an authenticated HTTPS list URL; the NGFW’s EDL/external-resource object **polls** that URL. Secrets still live in `.env` (`edlPublishUrlEnv` is the public list endpoint the firewall uses; signing keys stay local).
+1. **Push/API mode** — agent authenticates to the vendor manager (Panorama, FortiManager, FMC, Check Point Mgmt, Juniper) and creates/updates EDL or equivalent feed/object-group entries.
+2. **Pull/EDL mode** — agent (or a tiny local sidecar) exposes an authenticated HTTPS list URL; the NGFW’s EDL/external-resource object **polls** that URL on a refresh interval. Secrets still live in `.env` (`edlPublishUrlEnv` is the list endpoint the firewall uses; signing keys stay local).
 
-Jobs targeting NGFW should set `includeIndicators: true` and usually `outputFormat: edl`. Empty indicator sets → no policy update (same fail-soft as empty SIEM pushes).
+Jobs targeting NGFW should set `includeIndicators: true` and usually `outputFormat: edl`. Empty indicator sets → no EDL/policy update (same fail-soft as empty SIEM pushes).
 
 ### 6.6 Capability matrix (summary)
 
@@ -418,7 +440,7 @@ Jobs targeting NGFW should set `includeIndicators: true` and usually `outputForm
 | SOC can query Truss hits in Splunk/Sentinel/etc. | `siem` | `push_products` / `push_iocs` |
 | Endpoints block or hunt on hashes/IOCs | `edr` | `push_iocs` |
 | Open a case / kick a playbook | `soar` | `push_products` |
-| Firewall drops traffic to bad IPs/domains/URLs | `ngfw` | `push_edl` |
+| Firewall drops traffic to bad IPs/domains/URLs | `ngfw` | `push_edl` (updates an **EDL** / equivalent; policy must already reference it) |
 
 ---
 
@@ -578,7 +600,7 @@ Shared search payload builder remains [`src/lib/build-product-search-payload.ts`
 | **3 — SIEM adapters** | `splunk-hec`, `microsoft-sentinel`, `google-secops`, `cortex-xsiam`, `crowdstrike-ng-siem`, `sumo-logic`, `databricks-panther` | healthcheck + push_products/ioc for each; example env docs |
 | **4 — EDR adapters** | Falcon, MDE, SentinelOne, Cortex XDR, Trend Micro, Tanium | IOC push + healthcheck |
 | **5 — SOAR adapters** | XSOAR, Splunk SOAR, Tines, Torq, Swimlane | Incident/container/webhook/record push + healthcheck |
-| **6 — NGFW adapters** | Palo Alto, FortiGate, Check Point, Cisco Secure Firewall, Juniper SRX | `push_edl` (API and/or pull-EDL modes) + healthcheck |
+| **6 — NGFW adapters** | Palo Alto, FortiGate, Check Point, Cisco Secure Firewall, Juniper SRX | `push_edl` for **EDL** / equivalent feeds (API and/or pull modes) + healthcheck |
 | **7 — Migration** | Import truss-agent config; update `guides/truss-agent-vs-mcp.md` to “unified local agent”; example configs | Documented migration path; no dual-daemon requirement |
 | **8 — Hardening** | Unit/integration tests; secret audit; serial queue + retry budget; IOC defaults; `doctor` checks for unset refs | CI green; security review of logs/tool output |
 
@@ -631,7 +653,7 @@ Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM wor
 - CrowdStrike appears twice by design: **NG-SIEM/LogScale** (SIEM ingest) vs **Falcon** (EDR IOC API).
 - Palo Alto appears thrice by design: **Cortex XSIAM** (SIEM), **Cortex XDR** (EDR), **PAN-OS / Strata NGFW** (EDL enforcement).
 - Databricks (formerly Panther): prefer Panther-compatible ingest while Databricks branding settles; keep type id `databricks-panther` stable for configs.
-- NGFW EDL pull-mode may require a small local HTTPS publisher; keep it optional so API-push-only customers are not forced to expose an endpoint.
+- NGFW **EDL** pull-mode may require a small local HTTPS publisher; keep it optional so API-push-only customers are not forced to expose an endpoint. Always expand **EDL** as External Dynamic List on first mention in user-facing guides.
 - Dashboard export of agent config should eventually emit env-ref JSON + `.env` template (cross-repo checklist item when delivery ships).
 
 ---
@@ -644,5 +666,6 @@ Suggested dependency order: Phase 1 before 2; Phase 2 can overlap early SIEM wor
 | 2026-08-24 | Destination matrix → top 5 SIEM / EDR / SOAR (added Google SecOps, Cortex XDR, Trend Micro, Tines, Swimlane) |
 | 2026-08-24 | SIEM + Sumo Logic, Databricks (Panther); EDR + Tanium |
 | 2026-08-24 | Added NGFW category (Palo Alto, FortiGate, Check Point, Cisco, Juniper) + push semantics vs SIEM/EDR/SOAR |
+| 2026-08-24 | Defined **EDL (External Dynamic List)** in §6.0.1; tightened NGFW wording around EDL |
 
 Prev: [06 — Cross-repo OAuth checklist](./06-cross-repo-oauth-checklist.md)
