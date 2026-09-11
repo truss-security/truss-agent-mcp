@@ -12,6 +12,7 @@ import {
 import { getProvider } from './providers/catalog.js';
 import { resolveLlmFromEnv } from './providers/resolve.js';
 import { resolveServerCliPath } from './resolve-server-path.js';
+import { collectDeliveryDoctorChecks } from '../delivery/doctor-checks.js';
 
 interface CheckResult {
   name: string;
@@ -124,6 +125,10 @@ export async function runDoctor(fromModuleUrl?: string, argv: string[] = process
     }
   } else {
     results.push(check('LLM API', false, 'skipped — LLM API key not configured'));
+  }
+
+  for (const delivery of collectDeliveryDoctorChecks()) {
+    results.push(check(delivery.name, delivery.ok, delivery.detail));
   }
 
   results.push(

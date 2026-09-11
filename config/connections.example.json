@@ -1,0 +1,17 @@
+{
+  "connections": [
+    {
+      "name": "discord-alerts",
+      "type": "discord",
+      "description": "Threat intel channel",
+      "enabled": true,
+      "webhookUrlEnv": "DISCORD_WEBHOOK_ALERTS",
+      "query": {
+        "filter": {
+          "filterExpression": "category = \"Malware\""
+        },
+        "windowDays": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "formatVersion": 2,
+  "jobs": [
+    {
+      "name": "discord-malware-hourly",
+      "connectionName": "discord-alerts",
+      "schedule": 60,
+      "outputFormat": "metadata",
+      "enabled": true,
+      "includeIndicators": false,
+      "filter": {
+        "filterExpression": "category = \"Malware\""
+      },
+      "windowMinutes": 6000
+    }
+  ]
+}

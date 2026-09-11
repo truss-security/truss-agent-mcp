@@ -13,4 +13,12 @@ describe('maskSecret', () => {
   it('reports empty for blank values', () => {
     assert.equal(maskSecret(''), 'empty');
   });
+
+  it('maskWebhookUrl hides path tokens', async () => {
+    const { maskWebhookUrl } = await import('../src/delivery/secret-refs.ts');
+    const url = 'https://discord.com/api/webhooks/1/super-secret-token';
+    const masked = maskWebhookUrl(url);
+    assert.equal(masked.includes('super-secret-token'), false);
+    assert.match(masked, /discord\.com/);
+  });
 });

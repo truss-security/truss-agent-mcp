@@ -19,6 +19,8 @@ describe('truss CLI router', () => {
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'init']), 'init');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'mcp']), 'mcp');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'validate-remote']), 'validate-remote');
+    assert.equal(parseCommandForTest(['node', 'truss-mcp', 'serve']), 'serve');
+    assert.equal(parseCommandForTest(['node', 'truss-mcp', 'run-job']), 'run-job');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'version']), 'version');
   });
 
@@ -32,5 +34,6 @@ describe('truss CLI router', () => {
     const { parseCommandForTest } = await import('../src/truss-cli-router.ts');
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'unknown']), null);
     assert.equal(parseCommandForTest(['node', 'truss-mcp', 'ask']), null);
+    assert.equal(parseCommandForTest(['node', 'truss-mcp', 'migrate-agent-config']), null);
   });
 });

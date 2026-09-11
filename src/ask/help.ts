@@ -12,6 +12,9 @@ Commands
                        OAuth + MCP doctor (default URL: api.truss-security.com/mcp)
                        Options: --verbose  --strict-oauth  --save-token PATH
                                 --token-file PATH  --no-open  --port 9876  --url URL
+  truss-mcp serve      Local delivery daemon (Discord jobs; API key + webhook env)
+  truss-mcp run-job <name>
+                       Run one delivery job once
   truss-mcp help       This help
 
 Guided workflow

@@ -9,6 +9,7 @@ import { runRepl } from './ask/repl.js';
 import { parseCommand } from './truss-cli-router.js';
 import { runServer } from './server.js';
 import { parseValidateRemoteOptions, runValidateRemote } from './remote/validate-remote.js';
+import { runJobCli, runServeCli } from './delivery/cli.js';
 
 async function main(): Promise<void> {
   loadAllEnv();
@@ -46,6 +47,14 @@ async function main(): Promise<void> {
 
   if (command === 'validate-remote') {
     process.exit(await runValidateRemote(parseValidateRemoteOptions(process.argv)));
+  }
+
+  if (command === 'run-job') {
+    process.exit(await runJobCli(process.argv));
+  }
+
+  if (command === 'serve') {
+    process.exit(await runServeCli(process.argv));
   }
 
   if (command === 'search') {
