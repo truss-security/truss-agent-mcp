@@ -18,13 +18,16 @@ import { summarizeProducts } from '../lib/summarize-product.js';
 import { validateFilterExpression } from '../lib/validate-filter-expression.js';
 import {
   iterateInputSchema,
+  runJobNowInputSchema,
   searchInputSchema,
   stixSearchInputSchema,
   type IterateToolInput,
+  type RunJobNowInput,
   type SearchFieldsInput,
   type SearchToolInput,
   type StixSearchToolInput,
 } from './schemas.js';
+import { runDeliveryJob } from '../delivery/run-job.js';
 
 function textResult(data: unknown): { content: { type: 'text'; text: string }[] } {
   return {
@@ -216,6 +219,36 @@ export function registerTrussTools(server: McpServer, config: McpServerConfig): 
         return {
           content: [{ type: 'text' as const, text: JSON.stringify(stix, null, 2) }],
         };
+      } catch (error) {
+        return toolError(formatTrussError(error));
+      }
+    }
+  );
+
+  server.registerTool(
+    'run_job_now',
+    {
+      title: 'Run a local delivery job once',
+      description:
+        'Run one named job from local config/jobs.json immediately (search Truss + push to Discord). Same as CLI truss-mcp run-job. Pass only the job name — never webhook URLs or secrets. Does not start the scheduler.',
+      inputSchema: runJobNowInputSchema,
+    },
+    async (input: RunJobNowInput) => {
+      try {
+        const result = await runDeliveryJob({ jobName: input.jobName });
+        const payload = {
+          ok: result.ok,
+          jobName: result.jobName,
+          pushed: result.pushed,
+          productCount: result.productCount,
+          skipReason: result.skipReason,
+          error: result.error,
+          logs: result.logs,
+        };
+        if (!result.ok) {
+          return { ...textResult(payload), isError: true as const };
+        }
+        return textResult(payload);
       } catch (error) {
         return toolError(formatTrussError(error));
       }

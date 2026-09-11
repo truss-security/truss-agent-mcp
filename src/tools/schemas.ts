@@ -53,3 +53,14 @@ export type IterateToolInput = z.infer<typeof iterateInputSchema>;
 export const stixSearchInputSchema = searchInputSchema.omit({ include_indicators: true });
 
 export type StixSearchToolInput = z.infer<typeof stixSearchInputSchema>;
+
+export const runJobNowInputSchema = z.object({
+  jobName: z
+    .string()
+    .min(1)
+    .describe(
+      'Name of a job in local config/jobs.json (for example discord-malware-hourly). Never pass webhook URLs, tokens, or secrets.'
+    ),
+});
+
+export type RunJobNowInput = z.infer<typeof runJobNowInputSchema>;

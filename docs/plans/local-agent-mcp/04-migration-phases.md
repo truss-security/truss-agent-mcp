@@ -50,6 +50,8 @@ Local stdio tools (names illustrative):
 
 Host investigates via **Server MCP**. Optional `push_search_to_connection` is delivery-only (FilterQL in → push out), not a browse-results tool.
 
+**Discord slice implemented:** [`run_job_now`](./09-run-job-now.md) (same as CLI `run-job`). List/upsert/push-by-id still later.
+
 Still do not add `lookup_ioc` / `search_threats` clones here.
 
 ## Phase 4 — Sunset local search

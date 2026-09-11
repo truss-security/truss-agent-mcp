@@ -15,5 +15,6 @@ Target identity for **this repo**, written here so we do not rewrite shipped REA
 | [06-how-intel-is-pulled](./06-how-intel-is-pulled) | Phase 2: internal SDK/REST; not a search catalog |
 | [07-chat-and-serve](./07-chat-and-serve.md) | Phase 2: Discord/Slack/Teams, `serve`, `run-job` |
 | [08-cloud-served-agent-config](./08-cloud-served-agent-config.md) | Future: API stores secret-free bundles; Server MCP discovers *your* configs |
+| [09-run-job-now](./09-run-job-now.md) | Phase 3 slice: MCP `run_job_now` (Discord, job name only) |
 
 Older destination matrix (SIEM/EDR/…): [../../07-unified-agent-delivery-architecture.md](../../07-unified-agent-delivery-architecture.md). Useful for phase 5. Do **not** follow it where it keeps the seven local search tools — [01](./01-what-is-agent-mcp) wins.

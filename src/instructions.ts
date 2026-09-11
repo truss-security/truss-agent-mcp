@@ -216,7 +216,14 @@ export const MCP_TOOL_WORKFLOW = `Tool workflow:
 5. Prefer ${DEFAULT_SEARCH_DAYS}-day default to conserve Truss API quota; use wider windows only when requested.
 6. When the user needs full IOC values from a new search, pass include_indicators: true to search_products.
 7. Cite results by Truss product numeric id and title.
-8. Admin-only Truss routes (smart search, vector search, native product JSON) are not available.`;
+8. Admin-only Truss routes (smart search, vector search, native product JSON) are not available.
+9. Local Discord delivery: run_job_now with a job name from config/jobs.json only — never webhook URLs or secrets.`;
+
+export const AGENT_DELIVERY_TOOLS = `Local Agent delivery (this stdio server):
+- run_job_now — run one named job from local config/jobs.json immediately (search Truss using the job filter/window, then POST to Discord). Same as CLI truss-mcp run-job.
+- Argument is jobName only (example: discord-malware-hourly). Never pass webhook URLs, tokens, or API keys as tool arguments.
+- Use when the user asks to push/post to Discord or run a local delivery job now. Do not start the scheduler (truss-mcp serve) from this tool.
+- Prefer hosted Server MCP for investigation when that server is also attached; do not add new search tools here.`;
 
 export const MCP_HOST_INSTRUCTIONS = `You query Truss threat intelligence products via FilterQL and MCP tools.
 
@@ -235,6 +242,8 @@ ${NAMED_THREAT_WORKFLOW_MCP}
 ${GUIDED_WORKFLOW_MCP_HOST}
 
 ${MCP_TOOL_WORKFLOW}
+
+${AGENT_DELIVERY_TOOLS}
 
 ${SEARCH_RESPONSE_FORMAT}
 

@@ -46,6 +46,7 @@ describe('system prompts', () => {
     assert.doesNotMatch(MCP_HOST_INSTRUCTIONS, /type run to switch/i);
     assert.match(MCP_HOST_INSTRUCTIONS, /validate_filter_expression/i);
     assert.match(MCP_HOST_INSTRUCTIONS, /Would you like to build a Filter for this\?/);
+    assert.match(MCP_HOST_INSTRUCTIONS, /run_job_now/);
   });
 
   it('epistemic grounding is shared by REPL and MCP host prompts', () => {

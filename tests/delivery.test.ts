@@ -10,6 +10,8 @@ import { executeJob } from '../src/delivery/execute-job.ts';
 import { formatDiscordMetadata } from '../src/delivery/formatters/metadata.ts';
 import { collectDeliveryDoctorChecks } from '../src/delivery/doctor-checks.ts';
 import { listRunnableJobs } from '../src/delivery/serve.ts';
+import { runDeliveryJob } from '../src/delivery/run-job.ts';
+import { runJobNowInputSchema } from '../src/tools/schemas.ts';
 import type { DeliveryJob, DiscordConnection } from '../src/delivery/schemas.ts';
 
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1234567890/abcdefghijklmnopqrstuvwxyz';
@@ -210,6 +212,39 @@ describe('delivery doctor and serve selection', () => {
       resolveWindowMinutes(validJob({ windowMinutes: 6000 }), validConnection()),
       6000
     );
+    rmSync(dir, { recursive: true, force: true });
+  });
+});
+
+describe('run_job_now', () => {
+  it('schema accepts a job name and nothing else', () => {
+    const parsed = runJobNowInputSchema.safeParse({ jobName: 'discord-malware-hourly' });
+    assert.equal(parsed.success, true);
+    const extra = runJobNowInputSchema.safeParse({
+      jobName: 'discord-malware-hourly',
+      webhookUrl: 'https://discord.com/api/webhooks/nope',
+    });
+    assert.equal(extra.success, true);
+    assert.equal(
+      extra.success && extra.data.jobName === 'discord-malware-hourly' && !('webhookUrl' in extra.data),
+      true
+    );
+  });
+
+  it('runDeliveryJob fails closed for an unknown job without posting', async () => {
+    const dir = tempDir();
+    mkdirSync(join(dir, 'config'));
+    writeJson(join(dir, 'config', 'connections.json'), {
+      connections: [validConnection()],
+    });
+    writeJson(join(dir, 'config', 'jobs.json'), {
+      formatVersion: 2,
+      jobs: [validJob()],
+    });
+    const result = await runDeliveryJob({ jobName: 'does-not-exist', cwd: dir });
+    assert.equal(result.ok, false);
+    assert.equal(result.pushed, false);
+    assert.match(result.error ?? '', /not found/);
     rmSync(dir, { recursive: true, force: true });
   });
 });

@@ -97,4 +97,5 @@ Same as root AGENTS.md (`docs/aiAssistantPlan/`, legacy vision docs, huggingface
 - [03-dual-server-host](./03-dual-server-host) — host configs (target)
 - [04-migration-phases](./04-migration-phases) — phase map
 - Phase 2: [05-config-and-secrets](./05-config-and-secrets.md) · [06-how-intel-is-pulled](./06-how-intel-is-pulled.md) · [07-chat-and-serve](./07-chat-and-serve.md)
+- Phase 3: [09-run-job-now](./09-run-job-now.md)
 - Future: [08-cloud-served-agent-config](./08-cloud-served-agent-config.md)

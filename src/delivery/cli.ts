@@ -16,7 +16,8 @@ export async function runJobCli(argv: string[] = process.argv): Promise<number> 
     return 1;
   }
   const dir = argValue(argv, '--dir') ?? process.cwd();
-  return runDeliveryJob({ jobName, cwd: dir, log: console.log });
+  const result = await runDeliveryJob({ jobName, cwd: dir, log: console.log });
+  return result.ok ? 0 : 1;
 }
 
 export async function runServeCli(argv: string[] = process.argv): Promise<number> {
