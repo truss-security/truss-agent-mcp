@@ -4,6 +4,8 @@ Target identity for **this repo**, written here so we do not rewrite shipped REA
 
 **Live product docs stay as they are.** They still describe today’s hybrid (hosted-MCP client + local FilterQL search). This folder is the source of truth for where we are going.
 
+**Customer-product north star:** [11-optimal-customer-product](./11-optimal-customer-product.md) — Truss as intel core; AI/setup + pull feeds + a packaged collector. Use that doc when 01 / 07 / 10 disagree.
+
 | Doc | Role |
 |-----|------|
 | [01-what-is-agent-mcp](./01-what-is-agent-mcp) | Why: Server MCP vs Agent MCP; what belongs here |
@@ -16,5 +18,9 @@ Target identity for **this repo**, written here so we do not rewrite shipped REA
 | [07-chat-and-serve](./07-chat-and-serve.md) | Phase 2: Discord/Slack/Teams, `serve`, `run-job` |
 | [08-cloud-served-agent-config](./08-cloud-served-agent-config.md) | Future: API stores secret-free bundles; Server MCP discovers *your* configs |
 | [09-run-job-now](./09-run-job-now.md) | Phase 3 slice: MCP `run_job_now` (Discord, job name only) |
+| [10-customer-path](./10-customer-path.md) | Earlier no-Cursor CLI path (clone + `serve`); superseded for product questions by 11 |
+| [11-optimal-customer-product](./11-optimal-customer-product.md) | North star: query Truss, AI wires Discord/SIEM/etc.; TAXII + Docker collector + optional MCP |
+
+Customer journeys (prompts + MVP build split): [`../customer-journeys/`](../customer-journeys/) — [01-discord-channel](../customer-journeys/01-discord-channel.md), [02-splunk-job](../customer-journeys/02-splunk-job.md).
 
 Older destination matrix (SIEM/EDR/…): [../../07-unified-agent-delivery-architecture.md](../../07-unified-agent-delivery-architecture.md). Useful for phase 5. Do **not** follow it where it keeps the seven local search tools — [01](./01-what-is-agent-mcp) wins.

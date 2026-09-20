@@ -98,4 +98,8 @@ Same as root AGENTS.md (`docs/aiAssistantPlan/`, legacy vision docs, huggingface
 - [04-migration-phases](./04-migration-phases) — phase map
 - Phase 2: [05-config-and-secrets](./05-config-and-secrets.md) · [06-how-intel-is-pulled](./06-how-intel-is-pulled.md) · [07-chat-and-serve](./07-chat-and-serve.md)
 - Phase 3: [09-run-job-now](./09-run-job-now.md)
+- Customer install (no Cursor): [10-customer-path](./10-customer-path.md) (CLI kernel; product UX in 11)
+- North star: [11-optimal-customer-product](./11-optimal-customer-product.md)
+- Discord journey: [../customer-journeys/01-discord-channel.md](../customer-journeys/01-discord-channel.md)
+- Splunk journey: [../customer-journeys/02-splunk-job.md](../customer-journeys/02-splunk-job.md)
 - Future: [08-cloud-served-agent-config](./08-cloud-served-agent-config.md)
