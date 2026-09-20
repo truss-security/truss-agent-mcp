@@ -143,7 +143,7 @@ Journey write-ups live under [`docs/plans/customer-journeys/`](../customer-journ
 
 ### Splunk — hourly HEC job
 
-MVP for “Truss in our SIEM.” No TAXII. Assistant narrows IOCs via Server MCP, then emits setup up to HEC URL/token (their Splunk). Detail, development split, and success test: **[02-splunk-job](../customer-journeys/02-splunk-job.md)**.
+Same branching as Discord: ask what already schedules HTTP (**Splunk scripted input / SOAR** first, then Zapier). If nothing: **Docker** collector. No git clone; no Truss-hosted HEC in this MVP. **[02-splunk-job](../customer-journeys/02-splunk-job.md)**.
 
 ### Later — they pull (Sentinel / OpenCTI / TAXII)
 
