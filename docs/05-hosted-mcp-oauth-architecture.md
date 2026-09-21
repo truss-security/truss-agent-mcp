@@ -77,8 +77,9 @@ flowchart TB
 | `get_product` | Product detail as JSON |
 | `get_product_stix` | Product detail as STIX 2.1 |
 | `search_stix` | Search results as STIX 2.1 |
+| `get_discord_delivery_setup` | Zapier recipe for scheduled Truss → Discord (no webhook args; does not POST) |
 
-Local stdio tools (`search_products`, `validate_filter_expression`, …) are documented in [04 — MCP tool catalog](./04-mcp-tool-catalog.md). Registries and partner integrations should advertise the **hosted** five-tool surface.
+Local stdio tools (`search_products`, `validate_filter_expression`, …) are documented in [04 — Tool catalog](./04-mcp-tool-catalog.md). Registries should advertise this **hosted** catalog.
 
 ---
 

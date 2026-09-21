@@ -1,6 +1,6 @@
 # Journey — Discord channel for new malware
 
-**Status:** Chat MVP — assistant discovers their scheduler; Truss does not assume a CLI  
+**Status:** Chat MVP — Path A step 1 on Server MCP; dashboard Auto chat is an MCP host of the same catalog  
 **North star:** [../local-agent-mcp/11-optimal-customer-product.md](../local-agent-mcp/11-optimal-customer-product.md)  
 **Related:** [../local-agent-mcp/07-chat-and-serve.md](../local-agent-mcp/07-chat-and-serve.md) · Server MCP in **truss-api** `documentation/architecture/mcp.md`
 
@@ -28,11 +28,11 @@ A generic chat box does not know Truss. They must already be in a host with Trus
 
 | Place | How it knows Truss |
 |-------|-------------------|
-| Truss dashboard setup/chat (not shipped as this workflow) | Logged-in session |
+| Truss dashboard chat (Auto) | Logged-in session; same Server MCP catalog as `/mcp` |
 | Their assistant (Claude, Copilot, SOC bot) | One-time: `https://api.truss-security.com/mcp` + OAuth |
 | `truss-mcp search` | Token file or API key; technician tool |
 
-Dashboard **AI Assistant** (`/assistant/query`) is smart search, not this journey.
+Dashboard **AI Assistant** Auto mode hosts the same Server MCP tools (in-process). Threat Data / Knowledge Base / Both still use smart search and doc RAG. `/assistant/query` is the chat entry; it does not speak MCP JSON-RPC.
 
 ---
 
@@ -114,13 +114,13 @@ No git clone. No Node toolchain on the SOC laptop as the install story.
 | Env-ref jobs + `serve` / `run-job` / `doctor` | this repo | Path C runtime; `run-job` = test |
 | `run_job_now` | local stdio only | Test by **job name**; [09](../local-agent-mcp/09-run-job-now.md) |
 
-### Must add — Server MCP (`truss-api`)
+### Server MCP (`truss-api`)
 
 | Work | Why |
 |------|-----|
-| Instructions for this prompt | Clarify intel → ask scheduler → branch; do not dump 50 products or tell them to clone |
-| `get_discord_delivery_setup` (illustrative) | Returns **Zapier (v1)** steps + exact Truss HTTP (URL, header, FilterQL, cadence) + Discord webhook click-path. Optional stubs: “Truss-hosted” vs “Docker compose” |
-| Later packs | Make / n8n / Tines as extra artifacts, not a new investigation catalog |
+| Instructions for this prompt | Clarify intel → ask scheduler → branch; do not dump 50 products or tell them to clone. **Done** on hosted `/mcp`. |
+| `get_discord_delivery_setup` | **Done** — Zapier pack; FilterQL + interval; no webhook args |
+| Later packs | Make / n8n / Tines — not this step |
 
 Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool arguments** (dashboard form for path B only).
 
@@ -160,17 +160,18 @@ Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool a
 
 ## Suggested build order
 
-1. Server MCP instructions + **Zapier** blessed recipe (path A). Prove the prompt with no Truss daemon.
-2. More informational recipes (Make, n8n, Tines).
-3. **Docker** image for `serve` (path C) for on-prem.
-4. **Truss-hosted** Discord jobs (path B) when we accept chat webhooks in the dashboard.
-5. Slack/Teams as copies of this branching.
+1. ~~Server MCP instructions + **Zapier** blessed recipe (path A).~~ **Done** in **truss-api**: `get_discord_delivery_setup` + server instructions.
+2. ~~Dashboard chat as MCP host.~~ **Done**: Auto mode on `/assistant/query` uses the same catalog (search server + dashboard).
+3. More informational recipes (Make, n8n, Tines).
+4. **Docker** image for `serve` (path C) for on-prem.
+5. **Truss-hosted** Discord jobs (path B) when we accept chat webhooks in the dashboard.
+6. Slack/Teams as copies of this branching.
 
 ---
 
 ## Success
 
-A Growth+ user says the canonical prompt in an assistant that already has Server MCP (or later dashboard chat). They narrow malware with the model. They are asked how they schedule HTTP today.
+A Growth+ user says the canonical prompt in dashboard Auto chat or in an assistant that already has Server MCP. They narrow malware with the model. They are asked how they schedule HTTP today.
 
 - If Zapier (or later: n8n/…): they turn on a Truss-authored Zap and see posts in Discord. No clone, no `truss-mcp`.
 - If nothing: they either paste a webhook into Truss and get hourly posts, **or** run a documented Docker stack with `.env`.

@@ -32,7 +32,7 @@ describe('system prompts', () => {
   it('remote prompt uses hosted tools', () => {
     assert.ok(UNIFIED_SEARCH_PROMPT_REMOTE.includes(REPL_SEARCH_INSTRUCTIONS_REMOTE));
     assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /search_threats/);
-    assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /lookup_ioc/);
+    assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /get_discord_delivery_setup/);
     assert.match(UNIFIED_SEARCH_PROMPT_REMOTE, /do not invent unavailable FilterQL tools/i);
   });
 

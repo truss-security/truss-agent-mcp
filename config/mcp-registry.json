@@ -23,7 +23,8 @@
     "search_threats",
     "get_product",
     "get_product_stix",
-    "search_stix"
+    "search_stix",
+    "get_discord_delivery_setup"
   ],
   "eligibility": {
     "plans": ["growth", "scale", "enterprise"],
