@@ -67,9 +67,8 @@ Do **not** offer: git clone, `npm install`, babysitting `run-job` in a terminal.
 
 Truss does not run the clock and does not store the Discord webhook.
 
-- Start with **one** first-party recipe (**Zapier**). HTTP on a schedule → `POST /product/search` (or STIX) with `x-api-key` → Discord Incoming Webhook module.
-- Ship that recipe as a setup artifact (Server MCP tool or a short canonical doc the agent must use). A connected LLM can narrate Zapier’s UI; it will **invent** Truss URLs, headers, and FilterQL without a blessed pack.
-- Later: informational packs for Make, n8n, Tines — or the model adapts the Zapier pack while keeping the same Truss request shape.
+- Start with blessed recipes for **Zapier, Make, n8n, and Tines**. HTTP on a schedule → `POST /product/search` with `x-api-key` → Discord Incoming Webhook. Pass `scheduler` on `get_discord_delivery_setup`.
+- A connected LLM will invent Truss URLs without that pack. Torq, GitHub Actions, and Power Automate are not packed; reuse the same Truss HTTP if asked.
 
 They paste `TRUSS_API_KEY` and the Discord webhook into **Zapier** (or equivalent), not into Truss.
 
@@ -119,8 +118,8 @@ No git clone. No Node toolchain on the SOC laptop as the install story.
 | Work | Why |
 |------|-----|
 | Instructions for this prompt | Clarify intel → ask scheduler → branch; do not dump 50 products or tell them to clone. **Done** on hosted `/mcp`. |
-| `get_discord_delivery_setup` | **Done** — Zapier pack; FilterQL + interval; no webhook args |
-| Later packs | Make / n8n / Tines — not this step |
+| `get_discord_delivery_setup` | **Done** — Zapier, Make, n8n, Tines; `scheduler` + FilterQL + interval; no webhook args |
+| Later packs | Torq, GitHub Actions, Power Automate — reuse the same Truss HTTP |
 
 Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool arguments** (dashboard form for path B only).
 
@@ -162,7 +161,7 @@ Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool a
 
 1. ~~Server MCP instructions + **Zapier** blessed recipe (path A).~~ **Done** in **truss-api**: `get_discord_delivery_setup` + server instructions.
 2. ~~Dashboard chat as MCP host.~~ **Done**: Auto mode on `/assistant/query` uses the same catalog (search server + dashboard).
-3. More informational recipes (Make, n8n, Tines).
+3. ~~More informational recipes (Make, n8n, Tines).~~ **Done**: `get_discord_delivery_setup` `scheduler` = `make` \| `n8n` \| `tines` (same Truss HTTP as Zapier).
 4. **Docker** image for `serve` (path C) for on-prem.
 5. **Truss-hosted** Discord jobs (path B) when we accept chat webhooks in the dashboard.
 6. Slack/Teams as copies of this branching.
@@ -173,7 +172,7 @@ Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool a
 
 A Growth+ user says the canonical prompt in dashboard Auto chat or in an assistant that already has Server MCP. They narrow malware with the model. They are asked how they schedule HTTP today.
 
-- If Zapier (or later: n8n/…): they turn on a Truss-authored Zap and see posts in Discord. No clone, no `truss-mcp`.
+- If Zapier, Make, n8n, or Tines: they turn on the Truss-authored recipe and see posts in Discord. No clone, no `truss-mcp`.
 - If nothing: they either paste a webhook into Truss and get hourly posts, **or** run a documented Docker stack with `.env`.
 
 They did not write FilterQL by hand. They were not told to download this repo.

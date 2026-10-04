@@ -79,7 +79,7 @@ Same idea as [01](./01-discord-channel.md) path A, last hop is HEC not Discord.
 
 - Start with **one** recipe (**Zapier**): schedule → Truss HTTP → Splunk HEC.
 - Ship as a setup artifact. LLM will invent Truss/HEC shapes without it.
-- Then informational packs: Make, n8n, Tines (same build-order slot as Discord).
+- Then informational packs for Splunk on Make, n8n, and Tines (Discord already has those schedulers).
 
 Secrets stay in Zapier (or equivalent).
 

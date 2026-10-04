@@ -291,7 +291,7 @@ export const HOSTED_MCP_TOOLS_GUIDE = `Hosted MCP tools (same catalog as Cursor 
 - get_product — product detail as JSON by id
 - get_product_stix — product detail as STIX 2.1 by id
 - search_stix — search results as STIX 2.1
-- get_discord_delivery_setup — Zapier recipe to schedule Truss → Discord (filterExpression + intervalMinutes only; never webhook URLs)
+- get_discord_delivery_setup — Zapier, Make, n8n, or Tines recipe to schedule Truss → Discord (scheduler + filterExpression + intervalMinutes only; never webhook URLs)
 
 Prefer these tools only — do not invent FilterQL validate/search_products tool names; they are not available on remote transport.
 Default to a recent time window (~${DEFAULT_SEARCH_DAYS} days) unless the user asks for wider. Cite results by product id and title when present.`;
@@ -347,7 +347,7 @@ export const MCP_TOOL_WORKFLOW_REMOTE = `Tool workflow (hosted):
 5. Default to ~${DEFAULT_SEARCH_DAYS}-day windows; widen only when requested (note quota).
 6. For STIX: search_stix for a set, get_product_stix for one id.
 7. Cite results by Truss product id and title when available.
-8. Discord schedule (Zapier): after the user agrees a filter, ask if they have Zapier; if yes, call get_discord_delivery_setup. Never pass webhook URLs or API keys as tool arguments.`;
+8. Discord schedule: after the user agrees a filter, ask if they use Zapier, Make, n8n, or Tines; call get_discord_delivery_setup with that scheduler. Never pass webhook URLs or API keys as tool arguments.`;
 
 export const SEARCH_ERROR_PLAYBOOK_REMOTE = `Search error and edge-case playbook (hosted):
 - 0 results: say Truss does not currently have matching products (other sources may still cover the topic); suggest broader terms, aliases, or wider date window — never claim industry-wide absence.
