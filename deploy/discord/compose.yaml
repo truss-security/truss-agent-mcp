@@ -1,0 +1,26 @@
+# Discord path C. Secrets stay in .env (copy env.example). Job JSON stays in ./config.
+# Engineering checkout builds truss-agent:local. After a registry publish, drop `build`
+# and set `image` to the published tag. Do not put webhook URLs or API keys in this file.
+#
+#   mkdir -p config
+#   cp ../../config/connections.example.json config/connections.json
+#   cp ../../config/jobs.example.json config/jobs.json
+#   cp ../../config/agent.example.json config/agent.json
+#   cp env.example .env
+#   docker compose up -d
+#   docker compose run --rm discord run-job discord-malware-hourly
+
+name: truss-discord
+
+services:
+  discord:
+    image: truss-agent:local
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    init: true
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config:ro

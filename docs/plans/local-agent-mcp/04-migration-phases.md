@@ -1,6 +1,6 @@
 # Migration phases
 
-**Status:** Roadmap. Phase 1 docs done. Phase 2 **docs** done ([05](./05-config-and-secrets)–[07](./07-chat-and-serve)); implementation not started.  
+**Status:** Roadmap. Phase 1 docs done. Discord delivery (`serve` / `run-job`) and path C Docker packaging (`Dockerfile`, `deploy/discord/`) are in the repo. Local search tools are still shipped. Registry publish of the image is not done.  
 **Product definition:** [01-what-is-agent-mcp](./01-what-is-agent-mcp)
 
 Do **not** execute [docs/07](../../07-unified-agent-delivery-architecture.md) as written. That plan keeps the seven local search tools. 01 wins: those tools are a duplicate Server MCP and will be sunset, not extended.

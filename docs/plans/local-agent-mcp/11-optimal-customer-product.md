@@ -260,7 +260,7 @@ Existing `run-job` / `serve` / Discord / `run_job_now` are the **kernel** of B a
 
 | Phase  | Customer can…                                   | We build                                                                                                                                                          |
 | ------ | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **P0** | Discord digest on a box they control            | What we have: env-ref JSON, `run-job`, `serve`, `run_job_now`. Package a **Docker image**. Fix example filenames. Stop telling customers to clone for production. |
+| **P0** | Discord digest on a box they control            | Env-ref JSON, `run-job`, `serve`, `run_job_now`, example JSON names, `Dockerfile`, and `deploy/discord/compose.yaml` (local tag `truss-agent:local`). Registry publish is still open; until then do not tell customers to clone for production. |
 | **P1** | Get Truss into a SIEM without our daemon        | TAXII or equivalent pull + dashboard “connect Splunk/Sentinel/OpenCTI” copy. Setup agent can be a scripted wizard before it is an LLM.                            |
 | **P2** | AI-assisted setup                               | Dashboard (or `truss-mcp init` that is destination-aware) emits compose + `.env` template + job from a questionnaire. LLM optional.                               |
 | **P3** | Their AI configures jobs                        | Act tools on local runtime only: list/upsert connection & job, `run_job_now`, test. Server MCP stays query.                                                       |

@@ -83,7 +83,7 @@ Example JSON belongs next to `env.example` **when coding**, not in live `config/
 
 ## Vertical slice (first code after these docs)
 
-**Status:** Discord slice implemented in `src/delivery/` (`run-job`, `serve`). Slack/Teams still later in Phase 2. Config is hand-written (examples + `.env`); no migrator.
+**Status:** Discord slice implemented in `src/delivery/` (`run-job`, `serve`). Path C image is `Dockerfile` and `deploy/discord/` (local tag `truss-agent:local`). Slack/Teams still later in Phase 2. Config is hand-written (examples + `.env`); no migrator.
 
 Do not implement the whole matrix in one PR. First merge that proves Phase 2:
 

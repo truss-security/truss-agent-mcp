@@ -82,13 +82,29 @@ Investigation `/mcp` stays query-only. The job runner is a dashboard/API schedul
 
 ### C — No scheduler, webhook stays on-prem: Docker
 
-A **container** whose process **is** the scheduler (`truss-mcp serve` + `restart: unless-stopped`). They still need Docker (or Compose/K8s). The agent must say that.
+A **container** whose process **is** the scheduler. They still need Docker (or Compose/K8s). The agent must say that.
 
-- `.env` on the host: `TRUSS_API_KEY`, `DISCORD_WEBHOOK_ALERTS`
-- Config: env **names** only (`webhookUrlEnv`)
-- `run-job` inside the image = **test once**, not the product
+Contract (this repo):
 
-No git clone. No Node toolchain on the SOC laptop as the install story.
+| Piece | Value |
+|-------|--------|
+| Dockerfile | Repo root. Multi-stage Node 20. Non-root user `truss`. No secrets in the image. |
+| Entrypoint | `node dist/truss-cli.js` |
+| Default command | `serve` (long-running interval). Compose `restart: unless-stopped` and `init: true` (SIGTERM stops the process). |
+| One-shot test | `docker compose run --rm discord run-job discord-malware-hourly` |
+| Compose | `deploy/discord/compose.yaml`. Local tag `truss-agent:local` via `build`. |
+| Mount | `./config` → `/app/config` (read-only): `connections.json`, `jobs.json`, optional `agent.json` |
+| Env file | `deploy/discord/.env` from `env.example`: `TRUSS_API_KEY`, `DISCORD_WEBHOOK_ALERTS` |
+| Examples | `config/connections.example.json`, `config/jobs.example.json`, `config/agent.example.json` (also baked at `/usr/local/share/truss/examples/`) |
+| Job in the example | `discord-malware-hourly`: `category = "Malware"`, metadata, every 60 minutes, window 60 minutes, `webhookUrlEnv` = `DISCORD_WEBHOOK_ALERTS` |
+
+Empty Truss search logs `not posting` and does not POST. JSON stores env **names** only.
+
+Kubernetes CronJob (later, same image): command `run-job discord-malware-hourly`, schedule outside the container. The Compose path stays the long-running `serve` process.
+
+`build` in this repo’s compose file is for engineering checkouts. The customer recipe is `image: ghcr.io/truss-security/truss-agent:1.1.0`. Hosted `get_discord_delivery_setup` accepts `scheduler=docker` and returns that compose file, JSON, and `.env` template. No webhook argument.
+
+No git clone as the customer install story. No Node toolchain on the SOC laptop.
 
 ---
 
@@ -98,7 +114,7 @@ No git clone. No Node toolchain on the SOC laptop as the install story.
 |--------|---------------------------------------------------------------------|
 | Path A | Paste Truss API key + webhook into Zapier (or their tool). Turn the Zap on. |
 | Path B | Paste webhook into Truss dashboard (encrypted). Approve Truss posting. |
-| Path C | Paste webhook + API key into Docker `.env`. Run the compose/stack. |
+| Path C | Copy example JSON into `deploy/discord/config/`. Paste webhook + API key into `deploy/discord/.env`. `docker compose up -d`. |
 
 ---
 
@@ -131,13 +147,15 @@ Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool a
 | Hourly job runner | Public `POST /product/search` → Discord POST; no LLM |
 | Test post + rotate/delete | They confirm the channel |
 
-### Must add — this repo (path C)
+### This repo (path C) — in tree, not published
 
-| Work | Why |
-|------|-----|
-| Docker image with `serve` | The scheduler; not a Git repo |
-| Compose example (secret-free) | `restart: unless-stopped`, env file mount |
-| Example JSON names | `jobs.example.json` / `connections.example.json` |
+| Work | Where |
+|------|--------|
+| Docker image with `serve` | `Dockerfile` (local tag `truss-agent:local`) |
+| Compose example (secret-free) | `deploy/discord/compose.yaml` + `env.example` |
+| Example JSON names | `config/jobs.example.json`, `config/connections.example.json`, `config/agent.example.json` |
+
+Hosted `get_discord_delivery_setup` with `scheduler=docker` returns this compose file, JSON, and env template. It still takes no webhook argument.
 
 ### Optional
 
@@ -162,7 +180,7 @@ Do **not**: `push_to_discord` on hosted `/mcp`, or take webhook URLs as **tool a
 1. ~~Server MCP instructions + **Zapier** blessed recipe (path A).~~ **Done** in **truss-api**: `get_discord_delivery_setup` + server instructions.
 2. ~~Dashboard chat as MCP host.~~ **Done**: Auto mode on `/assistant/query` uses the same catalog (search server + dashboard).
 3. ~~More informational recipes (Make, n8n, Tines).~~ **Done**: `get_discord_delivery_setup` `scheduler` = `make` \| `n8n` \| `tines` (same Truss HTTP as Zapier).
-4. **Docker** image for `serve` (path C) for on-prem.
+4. ~~**Docker** image for `serve` (path C) for on-prem.~~ **In tree and published:** `ghcr.io/truss-security/truss-agent:1.1.0`. Hosted `scheduler=docker` returns the customer files.
 5. **Truss-hosted** Discord jobs (path B) when we accept chat webhooks in the dashboard.
 6. Slack/Teams as copies of this branching.
 

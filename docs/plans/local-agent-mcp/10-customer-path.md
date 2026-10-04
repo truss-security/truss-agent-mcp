@@ -100,6 +100,4 @@ If they later use Cursor or Claude: attach hosted Server MCP for investigation *
 
 ## Notes for this repo (not customer-facing)
 
-Example filenames should be `connections.example.json`, `jobs.example.json`, `agent.example.json`. This clone may still have awkwardly named copies (`jobs.example copy.json`). Fix before public install docs.
-
-Do not put this walkthrough in the shipped README until phase 6 ([04-migration-phases](./04-migration-phases.md)).
+Example filenames are `connections.example.json`, `jobs.example.json`, and `agent.example.json`. Path C packaging is `Dockerfile` and `deploy/discord/` (see the Discord journey). Do not put this walkthrough in the shipped README until phase 6 ([04-migration-phases](./04-migration-phases.md)).
