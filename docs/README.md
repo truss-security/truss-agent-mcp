@@ -14,6 +14,8 @@ Read in order for a full picture, or jump to the topic you need.
 | 04 | [mcp-tool-catalog.md](./04-mcp-tool-catalog.md) | Local stdio seven MCP tools |
 | 05 | [hosted-mcp-oauth-architecture.md](./05-hosted-mcp-oauth-architecture.md) | Hosted MCP at `api.truss-security.com/mcp`, OAuth, Growth+ gate |
 | 06 | [cross-repo-oauth-checklist.md](./06-cross-repo-oauth-checklist.md) | Dependent updates outside this package (API, dashboard, public docs) |
+| 07 | [unified-agent-delivery-architecture.md](./07-unified-agent-delivery-architecture.md) | Merge plan: schedules, env-ref secrets, chat/SIEM/EDR/SOAR/NGFW push into local MCP |
+| 08 | [datadog-integration-partnership.md](./08-datadog-integration-partnership.md) | Truss × Datadog: enrichment use cases, Access STIX vs Deployment MCP; [public MCP docs](https://docs.truss-security.com/data/mcp) + **truss-api** |
 
 ## Remote MCP (recommended for hosts)
 
