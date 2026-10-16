@@ -4,7 +4,7 @@
 **Audience:** Truss + Datadog partnership / solutions engineering  
 **Last updated:** October 2026
 
-This document explains how Truss customers connect threat intelligence into the Datadog platform. It starts with the product model, then walks the technical architecture in the appendix.
+This document explains how Truss customers connect Truss' threat intelligence into the Datadog platform. It starts with the product model, then walks the technical architecture in the appendix.
 
 **Canonical public docs (partner-facing):**
 
@@ -17,6 +17,7 @@ This document explains how Truss customers connect threat intelligence into the 
 **Implementation ownership (engineering):** hosted `/mcp`, STIX mappers, and public product search live in **[truss-api](https://github.com/truss-security/truss-api)** (`documentation/architecture/mcp.md`, `src/handlers/mcpServer.ts`, `src/mcp/`, `src/handlers/searchProductsStix.ts`, `src/handlers/getProductStix.ts`). OAuth consent UX and Supabase migrations live in **truss-dashboard**. This package (`truss-agent-mcp`) ships host configs, `validate-remote` / `doctor --remote`, and optional local stdio—not the production MCP endpoint.
 
 > **Naming notes:**
+>
 > - Current billing tiers are **Access** and **Deployment** (not “Development”). Access unlocks the REST API and Truss Agent–style automation. Deployment adds the hosted MCP endpoint for dynamic, LLM-driven queries. The live MCP guide still mentions legacy **Growth / Scale** labels in places; treat those as Access / Deployment respectively.
 > - **TQL** = **Truss Query Language** (product name for the query language sent in API/`filterExpression` fields). Older docs may say “FilterQL”; treat them as the same language.
 
@@ -62,7 +63,7 @@ No LLM is required. Behavior is deterministic: same filter → same class of res
 Everything in Access, plus (per [Truss MCP](https://docs.truss-security.com/data/mcp)):
 
 1. After purchasing **Deployment** or **Enterprise** the customer (or Datadog-hosted agent) connects to Truss **hosted MCP** at `https://api.truss-security.com/mcp`.
-2. Authentication is through Truss' **OAuth** (host opens browser → dashboard consent at `/oauth/consent`); **`x-api-key`** is the documented alternative for bridges / automation.
+2. Authentication is through Truss' **OAuth** (host opens browser → dashboard consent at `/oauth/consent`); `x-api-key` is the documented alternative for bridges / automation.
 3. The host LLM calls Truss tools (`lookup_ioc`, `search_threats`, `get_product`, `get_product_stix`, `search_stix`, …) in response to analyst questions.
 4. Results stay in the investigation loop (chat, playbook, ticket). Separately, the customer can still run Job A to keep Datadog’s TI tables fresh.
 
@@ -93,7 +94,11 @@ flowchart TB
   Analyst -->|"Deployment:_ask_in_chat"| DdMcp
   DdMcp -->|"OAuth_or_API_key"| MCP
   MCP --> REST
+
+
 ```
+
+NOTE: We need to ask if DataDog has an API Query capability of its own. Essentially, can DataDog be its own Agent and pull on a cron schedule?
 
 ---
 
@@ -109,7 +114,7 @@ Both tiers talk to the same Truss product corpus. The public customer boundary i
 
 Hosted MCP tools are a **thin, agent-friendly façade** over that same data (plus a few convenience tools such as IOC pivot and native JSON product fetch on the hosted surface). Metering remains on Truss API Gateway usage plans.
 
-### 3.2 Access path — “push TI into Datadog”
+### 3.2 Access path — “push TI into Datadog” (Without the integration we can't pull Truss from DataDog, we can only push)
 
 Think of this as **Truss → Datadog** (egress from the customer’s automation into Datadog).
 
@@ -201,7 +206,7 @@ Every API UC starts with a concrete **TQL** expression (same language as dashboa
 
 **TQL:** Narrow expression (title/category/tags/industry/source, …) so only a slice of Truss is exported.  
 **Call:** Same STIX search + scheduled push as API-UC-1.  
-**Datadog outcome:** Leaner `threat_intel_stix_truss_*` tables; lower noise in enrichment and IOC Explorer.  
+**Datadog outcome:** Leaner `threat_intel_stix_truss_`* tables; lower noise in enrichment and IOC Explorer.  
 **Tier:** Access+
 
 #### API-UC-3 — High-fidelity detections on enriched logs
@@ -283,8 +288,8 @@ Every MCP UC starts with a **question** (or host prompt). The LLM selects tools 
 
 ### 4.5 Demo script (joint partnership)
 
-1. **API:** Run a TQL → STIX batch → confirm `threat_intel_stix_truss_*` tables and an IOC in IOC Explorer → show enriched log → optional signal/case.  
-2. **MCP:** From that signal’s IOC, ask the AI host a natural-language question via Truss MCP and show returned products.  
+1. **API:** Run a TQL → STIX batch → confirm `threat_intel_stix_truss_`* tables and an IOC in IOC Explorer → show enriched log → optional signal/case.
+2. **MCP:** From that signal’s IOC, ask the AI host a natural-language question via Truss MCP and show returned products.
 3. **Handoff:** Turn the successful MCP hunt into a saved TQL schedule for continuous API enrichment.
 
 ---
@@ -483,12 +488,12 @@ OAuth `resource` (RFC 8707) must be the MCP URL itself (`https://api.truss-secur
 
 ## A.6 Implementation options for the connector
 
-| Option | Fits | Notes |
-|--------|------|-------|
-| **Truss Agent job** with Datadog STIX destination | Access+ today / near-term | Aligns with existing schedule + TQL model; add Datadog adapter |
-| **Marketplace / Integration tile** in Datadog | Productized partnership | Customer pastes the subscription-issued API key (from dashboard `/api-key`) + TQL; Datadog or Truss-hosted worker pulls STIX |
-| **Customer script / SOAR** | DIY | Same REST → STIX ingest contract |
-| **Local `truss-mcp` delivery merge** | Longer-term | See [07 — Unified agent delivery](./07-unified-agent-delivery-architecture.md); hosted MCP stays query-only |
+| Option                                            | Fits                      | Notes                                                                                                                        |
+| ------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Truss Agent job** with Datadog STIX destination | Access+ today / near-term | Aligns with existing schedule + TQL model; add Datadog adapter                                                               |
+| **Marketplace / Integration tile** in Datadog     | Productized partnership   | Customer pastes the subscription-issued API key (from dashboard `/api-key`) + TQL; Datadog or Truss-hosted worker pulls STIX |
+| **Customer script / SOAR**                        | DIY                       | Same REST → STIX ingest contract                                                                                             |
+| **Local** `truss-mcp` **delivery merge**          | Longer-term               | See [07 — Unified agent delivery](./07-unified-agent-delivery-architecture.md); hosted MCP stays query-only                  |
 
 ## A.7 Non-goals for v1 partnership
 
