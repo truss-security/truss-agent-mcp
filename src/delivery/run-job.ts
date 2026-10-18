@@ -5,7 +5,7 @@ import { executeJob, type ExecuteJobResult } from './execute-job.js';
 import {
   findConnection,
   jobIsEnabled,
-  loadDeliveryBundle,
+  resolveDeliveryBundle,
 } from './load-bundle.js';
 import { searchProductsForDelivery } from './search.js';
 
@@ -42,7 +42,7 @@ export async function runDeliveryJob(opts: {
 
   let bundle;
   try {
-    bundle = loadDeliveryBundle(opts.cwd);
+    bundle = await resolveDeliveryBundle(opts.cwd);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     log(message);

@@ -4,7 +4,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { connectionsFileSchema, deliveryJobSchema } from '../src/delivery/schemas.ts';
-import { loadDeliveryBundle, resolveWindowMinutes } from '../src/delivery/load-bundle.ts';
+import { loadDeliveryBundle, resolveDeliveryBundle, resolveWindowMinutes } from '../src/delivery/load-bundle.ts';
+import { deliveryBundleFromPayload } from '../src/delivery/remote-config.ts';
 import { envRefIsSet, maskWebhookUrl, webhookEnvNameFromConnectionName } from '../src/delivery/secret-refs.ts';
 import { executeJob } from '../src/delivery/execute-job.ts';
 import { formatDiscordMetadata } from '../src/delivery/formatters/metadata.ts';
@@ -246,5 +247,152 @@ describe('run_job_now', () => {
     assert.equal(result.pushed, false);
     assert.match(result.error ?? '', /not found/);
     rmSync(dir, { recursive: true, force: true });
+  });
+});
+
+describe('remote delivery config', () => {
+  it('parses a secret-free bundle', () => {
+    const parsed = deliveryBundleFromPayload({
+      agent: { agentName: 'truss-agent' },
+      connections: {
+        connections: [
+          {
+            name: 'discord-alerts',
+            type: 'discord',
+            enabled: true,
+            webhookUrlEnv: 'DISCORD_WEBHOOK_ALERTS',
+          },
+        ],
+      },
+      jobs: {
+        jobs: [
+          {
+            name: 'discord-feed',
+            connectionName: 'discord-alerts',
+            schedule: 60,
+            outputFormat: 'metadata',
+            filter: { filterExpression: 'category = "Malware"' },
+            windowMinutes: 60,
+          },
+        ],
+      },
+    });
+    assert.equal(parsed.jobs.jobs[0]?.name, 'discord-feed');
+    assert.equal(parsed.connections.connections[0]?.webhookUrlEnv, 'DISCORD_WEBHOOK_ALERTS');
+  });
+
+  it('loads a remote bundle when TRUSS_DELIVERY_CONFIG_ID is set', async () => {
+    const configId = '11111111-1111-4111-8111-111111111111';
+    const previous = {
+      id: process.env.TRUSS_DELIVERY_CONFIG_ID,
+      key: process.env.TRUSS_API_KEY,
+      url: process.env.TRUSS_API_URL,
+      fetch: globalThis.fetch,
+    };
+    process.env.TRUSS_DELIVERY_CONFIG_ID = configId;
+    process.env.TRUSS_API_KEY = 'test-key';
+    process.env.TRUSS_API_URL = 'https://api.example.test';
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      assert.equal(String(input), `https://api.example.test/delivery/config/${configId}`);
+      assert.equal(new Headers(init?.headers).get('x-api-key'), 'test-key');
+      return new Response(JSON.stringify({
+        agent: { agentName: 'truss-agent' },
+        connections: {
+          connections: [{
+            name: 'discord-alerts',
+            type: 'discord',
+            enabled: true,
+            webhookUrlEnv: 'DISCORD_WEBHOOK_ALERTS',
+          }],
+        },
+        jobs: {
+          jobs: [{
+            name: 'discord-feed',
+            connectionName: 'discord-alerts',
+            schedule: 60,
+            outputFormat: 'metadata',
+            filter: { filterExpression: 'category = "Malware"' },
+            windowMinutes: 60,
+          }],
+        },
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as typeof fetch;
+
+    try {
+      const bundle = await resolveDeliveryBundle('/tmp/does-not-need-files');
+      assert.equal(bundle.jobs.jobs[0]?.name, 'discord-feed');
+    } finally {
+      globalThis.fetch = previous.fetch;
+      if (previous.id === undefined) delete process.env.TRUSS_DELIVERY_CONFIG_ID;
+      else process.env.TRUSS_DELIVERY_CONFIG_ID = previous.id;
+      if (previous.key === undefined) delete process.env.TRUSS_API_KEY;
+      else process.env.TRUSS_API_KEY = previous.key;
+      if (previous.url === undefined) delete process.env.TRUSS_API_URL;
+      else process.env.TRUSS_API_URL = previous.url;
+    }
+  });
+
+  it('loads every saved job when TRUSS_DELIVERY_REMOTE is set', async () => {
+    const previous = {
+      remote: process.env.TRUSS_DELIVERY_REMOTE,
+      runner: process.env.TRUSS_DELIVERY_RUNNER,
+      key: process.env.TRUSS_API_KEY,
+      url: process.env.TRUSS_API_URL,
+      fetch: globalThis.fetch,
+    };
+    process.env.TRUSS_DELIVERY_REMOTE = '1';
+    process.env.TRUSS_DELIVERY_RUNNER = 'prod-docker';
+    process.env.TRUSS_API_KEY = 'test-key';
+    process.env.TRUSS_API_URL = 'https://api.example.test';
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      assert.equal(String(input), 'https://api.example.test/delivery/config?runner=prod-docker');
+      return new Response(JSON.stringify({
+        agent: { agentName: 'truss-agent' },
+        connections: {
+          connections: [{
+            name: 'discord-webhook-alerts',
+            type: 'discord',
+            enabled: true,
+            webhookUrlEnv: 'DISCORD_WEBHOOK_ALERTS',
+          }],
+        },
+        jobs: {
+          jobs: [
+            {
+              name: 'discord-malware',
+              connectionName: 'discord-webhook-alerts',
+              schedule: 60,
+              outputFormat: 'metadata',
+              filter: { filterExpression: 'category = "Malware"' },
+              windowMinutes: 60,
+            },
+            {
+              name: 'discord-phishing',
+              connectionName: 'discord-webhook-alerts',
+              schedule: 15,
+              outputFormat: 'metadata',
+              filter: { filterExpression: 'category = "Phishing"' },
+              windowMinutes: 15,
+            },
+          ],
+        },
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as typeof fetch;
+
+    try {
+      const bundle = await resolveDeliveryBundle('/tmp/does-not-need-files');
+      assert.deepEqual(bundle.jobs.jobs.map((job) => job.name), ['discord-malware', 'discord-phishing']);
+      assert.equal(bundle.jobs.jobs[1]?.schedule, 15);
+    } finally {
+      globalThis.fetch = previous.fetch;
+      if (previous.remote === undefined) delete process.env.TRUSS_DELIVERY_REMOTE;
+      else process.env.TRUSS_DELIVERY_REMOTE = previous.remote;
+      if (previous.runner === undefined) delete process.env.TRUSS_DELIVERY_RUNNER;
+      else process.env.TRUSS_DELIVERY_RUNNER = previous.runner;
+      if (previous.key === undefined) delete process.env.TRUSS_API_KEY;
+      else process.env.TRUSS_API_KEY = previous.key;
+      if (previous.url === undefined) delete process.env.TRUSS_API_URL;
+      else process.env.TRUSS_API_URL = previous.url;
+    }
   });
 });

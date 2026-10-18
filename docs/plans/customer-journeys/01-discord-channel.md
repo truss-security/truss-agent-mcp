@@ -102,9 +102,11 @@ Empty Truss search logs `not posting` and does not POST. JSON stores env **names
 
 Kubernetes CronJob (later, same image): command `run-job discord-malware-hourly`, schedule outside the container. The Compose path stays the long-running `serve` process.
 
-`build` in this repo’s compose file is for engineering checkouts. The customer recipe is `image: ghcr.io/truss-security/truss-agent:1.1.0`. Hosted `get_discord_delivery_setup` accepts `scheduler=docker` and returns that compose file, JSON, and `.env` template. No webhook argument.
+`build` in this repo’s compose file is for engineering checkouts. The customer image is `ghcr.io/truss-security/truss-agent:1.1.0`. Hosted `get_discord_delivery_setup` with `scheduler=docker` offers two starts. No webhook argument. No git clone. No Node toolchain on the SOC laptop.
 
-No git clone as the customer install story. No Node toolchain on the SOC laptop.
+**Short start.** When the signed-in user id is known, the API stores a runner, a connection, and a job, then returns `quickStart`: `compose.yaml` (no volume) and `.env` with blank secrets, `TRUSS_DELIVERY_REMOTE=1`, and `TRUSS_DELIVERY_RUNNER`. The container GETs `GET /delivery/config?runner=<name>` with `x-api-key` and runs every job on that runner, each on its own interval. Unknown destinations are left out of the bundle until the image can run them.
+
+**Manual files.** The same response includes `files` for every saved Discord job: compose with a `./config` mount, `.env` without `TRUSS_DELIVERY_REMOTE`, and `connections.json` / `jobs.json` / `agent.json`. Do not set `TRUSS_DELIVERY_REMOTE` for that start.
 
 ---
 
@@ -114,7 +116,7 @@ No git clone as the customer install story. No Node toolchain on the SOC laptop.
 |--------|---------------------------------------------------------------------|
 | Path A | Paste Truss API key + webhook into Zapier (or their tool). Turn the Zap on. |
 | Path B | Paste webhook into Truss dashboard (encrypted). Approve Truss posting. |
-| Path C | Copy example JSON into `deploy/discord/config/`. Paste webhook + API key into `deploy/discord/.env`. `docker compose up -d`. |
+| Path C | Short start: one container per runner, `TRUSS_DELIVERY_REMOTE=1`, `TRUSS_DELIVERY_RUNNER`, `run-job <name>`, `up -d`. Manual: that runner’s jobs in `config/jobs.json`, leave `TRUSS_DELIVERY_REMOTE` unset. Restart after adding a job. |
 
 ---
 

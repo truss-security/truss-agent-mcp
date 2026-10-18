@@ -11,6 +11,13 @@ import {
   type JobsFile,
 } from './schemas.js';
 import { resolveDeliveryPaths, type DeliveryPaths } from './paths.js';
+import {
+  deliveryConfigIdFromEnv,
+  deliveryRemoteFromEnv,
+  deliveryRunnerFromEnv,
+  fetchAccountDeliveryBundle,
+  fetchRemoteDeliveryBundle,
+} from './remote-config.js';
 
 export interface DeliveryBundle {
   paths: DeliveryPaths;
@@ -28,6 +35,26 @@ function formatZodError(path: string, error: { issues: { path: (string | number)
     .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
     .join('; ');
   return `Invalid ${path}: ${details}`;
+}
+
+export async function resolveDeliveryBundle(
+  cwd: string = process.cwd(),
+  env: NodeJS.ProcessEnv = process.env
+): Promise<DeliveryBundle> {
+  if (deliveryRemoteFromEnv(env)) {
+    if (!deliveryRunnerFromEnv(env)) {
+      throw new Error('TRUSS_DELIVERY_RUNNER is required when TRUSS_DELIVERY_REMOTE is set');
+    }
+    const remote = await fetchAccountDeliveryBundle(env);
+    return { paths: resolveDeliveryPaths(cwd), ...remote };
+  }
+  const configId = deliveryConfigIdFromEnv(env);
+  if (!configId) return loadDeliveryBundle(cwd);
+  const remote = await fetchRemoteDeliveryBundle(configId, env);
+  return {
+    paths: resolveDeliveryPaths(cwd),
+    ...remote,
+  };
 }
 
 export function loadDeliveryBundle(cwd: string = process.cwd()): DeliveryBundle {

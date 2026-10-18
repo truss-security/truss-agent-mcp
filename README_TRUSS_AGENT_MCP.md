@@ -12,7 +12,19 @@ Investigation in Cursor or Claude uses hosted Truss MCP at `https://api.truss-se
 
 ## Run it
 
-Create a directory and save these files into it. You do not need this git repository.
+The dashboard assistant offers two Docker starts. Both keep the API key and Discord webhook in `.env` on your machine.
+
+**Short start.** The assistant saves each job on a runner and returns two files, `compose.yaml` and `.env`. `.env` sets `TRUSS_DELIVERY_REMOTE=1`, `TRUSS_DELIVERY_RUNNER` to that runner’s name, and one blank line per webhook env var. Fill in the secrets, then from that directory:
+
+```bash
+docker compose pull
+docker compose run --rm agent run-job discord-malware-hourly
+docker compose up -d
+```
+
+One container loads every job on that runner. Each job keeps its own interval. There is no `config/` directory. After you add a job, run `docker compose restart`. If the new job adds a webhook env var, edit `.env` and run `docker compose up -d --force-recreate`.
+
+**Manual files.** Use this when you want the job JSON on disk. `jobs.json` can list more than one job. Do not set `TRUSS_DELIVERY_REMOTE`.
 
 ```text
 discord-feed/
@@ -27,10 +39,10 @@ discord-feed/
 `compose.yaml`:
 
 ```yaml
-name: truss-discord
+name: truss-agent
 
 services:
-  discord:
+  agent:
     image: ghcr.io/truss-security/truss-agent:1.1.0
     init: true
     restart: unless-stopped
@@ -99,7 +111,7 @@ From `discord-feed/`:
 
 ```bash
 docker compose pull
-docker compose run --rm discord run-job discord-malware-hourly
+docker compose run --rm agent run-job discord-malware-hourly
 docker compose up -d
 ```
 

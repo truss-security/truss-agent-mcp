@@ -5,7 +5,7 @@ import { executeJob } from './execute-job.js';
 import {
   findConnection,
   jobIsEnabled,
-  loadDeliveryBundle,
+  resolveDeliveryBundle,
   type DeliveryBundle,
 } from './load-bundle.js';
 import { searchProductsForDelivery } from './search.js';
@@ -73,7 +73,7 @@ export async function runDeliveryServe(opts: {
   onReady?: (handles: ReturnType<typeof setInterval>[]) => void;
 }): Promise<void> {
   const log = opts.log ?? console.log;
-  const bundle = loadDeliveryBundle(opts.cwd);
+  const bundle = await resolveDeliveryBundle(opts.cwd);
   const runnable = listRunnableJobs(bundle);
   if (runnable.length === 0) {
     throw new Error('No enabled jobs with enabled Discord connections');
